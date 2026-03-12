@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Variable } from '../models/variable.model';
 import { PlantSimPayload, PlantSimVariable, TimeSeriesDataPoint } from '../models/timeseries.model';
 import { Asset } from '../models/asset.model';
+import { IhApiService } from './ih-api.service';
 
 interface SelectedAspectVariables {
   aspectName: string;
@@ -10,6 +11,8 @@ interface SelectedAspectVariables {
 
 @Injectable({ providedIn: 'root' })
 export class TimeseriesService {
+  constructor(private ihApi: IhApiService) {}
+
   async fetchAndBuildPayload(
     asset: Asset,
     selectedByAspect: SelectedAspectVariables[],
@@ -24,8 +27,10 @@ export class TimeseriesService {
       if (variables.length === 0) continue;
 
       const varNames = variables.map((v) => v.name).join(',');
-      const url = `/api/iottimeseries/v4/timeseries/${asset.assetId}/${aspectName}` +
-        `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&select=${varNames}&limit=2000`;
+      const url = this.ihApi.url(
+        `/api/iottimeseries/v4/timeseries/${asset.assetId}/${aspectName}` +
+        `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&select=${varNames}&limit=2000`
+      );
 
       const rows = await this.fetchWithRetry<TimeSeriesDataPoint[]>(url);
 

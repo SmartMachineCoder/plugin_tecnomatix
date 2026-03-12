@@ -3,10 +3,11 @@ import { Asset, AssetTreeNode } from '../models/asset.model';
 import { Aspect } from '../models/aspect.model';
 import { Variable } from '../models/variable.model';
 import { LoggerService } from './logger.service';
+import { IhApiService } from './ih-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class AssetService {
-  constructor(private logger: LoggerService) {}
+  constructor(private logger: LoggerService, private ihApi: IhApiService) {}
 
   async loadAllAssets(): Promise<Asset[]> {
     let page = 0;
@@ -15,7 +16,7 @@ export class AssetService {
 
     while (hasMore) {
       const data = await this.fetchWithRetry<{ _embedded: { assets: Asset[] } }>(
-        `/api/assetmanagement/v3/assets?size=200&page=${page}`
+        this.ihApi.url(`/api/assetmanagement/v3/assets?size=200&page=${page}`)
       );
 
       const pageAssets = data._embedded?.assets ?? [];
@@ -78,7 +79,7 @@ export class AssetService {
     }
 
     const data = await this.fetchWithRetry<AspectsApiResponse>(
-      `/api/assetmanagement/v3/assets/${assetId}/aspects`
+      this.ihApi.url(`/api/assetmanagement/v3/assets/${assetId}/aspects`)
     );
 
     const aspects: Aspect[] = (data._embedded?.aspects ?? []).map((a) => ({
@@ -99,7 +100,7 @@ export class AssetService {
   async loadLastValue(assetId: string, aspectName: string, variableName: string): Promise<{ value: number | string | boolean | null; timestamp: string } | null> {
     const to = new Date().toISOString();
     const from = new Date(Date.now() - 60 * 60 * 1000).toISOString(); // last 1 hour
-    const url = `/api/iottimeseries/v4/timeseries/${assetId}/${aspectName}?from=${from}&to=${to}&select=${variableName}&limit=1`;
+    const url = this.ihApi.url(`/api/iottimeseries/v4/timeseries/${assetId}/${aspectName}?from=${from}&to=${to}&select=${variableName}&limit=1`);
 
     try {
       const data = await this.fetchWithRetry<Array<Record<string, unknown>>>(url);
