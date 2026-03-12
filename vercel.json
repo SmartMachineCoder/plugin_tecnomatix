@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build:prod",
+  "outputDirectory": "dist/plugin-tecnomatix/browser",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

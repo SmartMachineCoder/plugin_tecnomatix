@@ -1,0 +1,45 @@
+<div class="send-panel-container">
+  <!-- Status bar -->
+  <div class="status-bar" [ngClass]="'status-' + sendStatus">
+    <ng-container [ngSwitch]="sendStatus">
+      <span *ngSwitchCase="'idle'" class="status-text idle">
+        {{ totalSelectedVars > 0 ? (totalSelectedVars + ' variables ready to send') : 'Select variables to send' }}
+      </span>
+      <span *ngSwitchCase="'fetching'" class="status-text loading">
+        <span class="spinner"></span> {{ statusMessage }}
+      </span>
+      <span *ngSwitchCase="'sending'" class="status-text loading">
+        <span class="spinner"></span> {{ statusMessage }}
+      </span>
+      <span *ngSwitchCase="'success'" class="status-text success">
+        &#10003; {{ statusMessage }}
+      </span>
+      <span *ngSwitchCase="'error'" class="status-text error">
+        &#10007; {{ statusMessage }}
+      </span>
+    </ng-container>
+  </div>
+</div>
+
+<!-- Activity Log Slide-in Panel -->
+<div class="log-panel" [class.open]="isLogOpen">
+  <div class="log-panel-header">
+    <span class="log-panel-title">Activity Log</span>
+    <div class="log-panel-actions">
+      <button class="log-action-btn" (click)="clearLog()">Clear</button>
+      <button class="log-close-btn" (click)="toggleLog()">&#10005;</button>
+    </div>
+  </div>
+  <div class="log-entries">
+    <div class="log-empty" *ngIf="logs.length === 0">No log entries yet.</div>
+    <div
+      class="log-entry"
+      *ngFor="let entry of logs; trackBy: trackByLog"
+      [ngClass]="logLevelClass(entry.level)"
+    >
+      <span class="log-time">[{{ formatLogTimestamp(entry.timestamp) }}]</span>
+      <span class="log-message">{{ entry.message }}</span>
+    </div>
+  </div>
+</div>
+<div class="log-backdrop" *ngIf="isLogOpen" (click)="toggleLog()"></div>

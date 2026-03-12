@@ -1,0 +1,108 @@
+<!-- Toast notifications (non-blocking) -->
+<div class="toast-container">
+  <div
+    class="toast"
+    *ngFor="let toast of toasts"
+    [ngClass]="'toast-' + toast.level"
+  >
+    <span class="toast-message">{{ toast.message }}</span>
+    <button class="toast-close" (click)="dismissToast(toast.id)">&#10005;</button>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<app-setup
+  *ngIf="!isSetupDone"
+  (setupComplete)="onSetupComplete()"
+></app-setup>
+
+<!-- SETTINGS OVERLAY (re-uses setup component) -->
+<div class="settings-overlay" *ngIf="isSettingsOpen">
+  <div class="settings-overlay-backdrop" (click)="closeSettings()"></div>
+  <div class="settings-overlay-panel">
+    <app-setup (setupComplete)="onSettingsSaved()"></app-setup>
+    <div class="settings-danger-zone">
+      <button class="btn-danger" (click)="resetConfig()">Reset to defaults</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PLUGIN SCREEN -->
+<div class="plugin-shell" *ngIf="isSetupDone && !isSettingsOpen">
+  <!-- Top toolbar -->
+  <div class="toolbar">
+    <span class="toolbar-title">Plugin_Tecnomatix</span>
+    <div class="toolbar-actions">
+      <button class="toolbar-btn" title="Activity Log" (click)="toggleLog()">
+        &#128203; Log
+      </button>
+      <button class="toolbar-btn" title="Settings" (click)="openSettings()">
+        &#9881; Settings
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content area: sidebar + right panel -->
+  <div class="content-area">
+    <!-- Left sidebar: Asset Tree -->
+    <div class="sidebar">
+      <app-asset-tree
+        [activeAssetId]="activeAssetId"
+        (assetSelected)="onAssetSelectedFromTree($event)"
+      ></app-asset-tree>
+    </div>
+
+    <!-- Right panel: Variable Selector + Bottom bar -->
+    <div class="main-panel">
+      <!-- Variable Selector -->
+      <div class="variable-area">
+        <app-variable-selector
+          [assetId]="activeAssetId"
+          [assetName]="selectedAsset?.name || ''"
+          (selectionChanged)="onVariableSelectionChanged($event)"
+        ></app-variable-selector>
+      </div>
+
+      <!-- Bottom bar: Time Range + Send Controls -->
+      <div class="bottom-bar">
+        <!-- Time Range -->
+        <app-time-range
+          (rangeReady)="onRangeReady($event)"
+          (liveStopped)="onLiveStopped()"
+        ></app-time-range>
+
+        <!-- Send Controls -->
+        <div class="send-controls">
+          <ng-container *ngIf="!isLive">
+            <button
+              class="btn btn-send"
+              [disabled]="selectedVariables.length === 0 || !selectedAsset"
+              (click)="onSendHistoric()"
+            >
+              &#9654; Send to Plant Simulation
+            </button>
+            <button
+              class="btn btn-live"
+              [disabled]="selectedVariables.length === 0 || !selectedAsset"
+              (click)="onStartLive()"
+            >
+              &#9679; Start Live
+            </button>
+          </ng-container>
+          <ng-container *ngIf="isLive">
+            <button class="btn btn-stop" (click)="onStopLive()">
+              &#9632; Stop Live
+            </button>
+          </ng-container>
+        </div>
+
+        <!-- Send Panel: status bar + log panel -->
+        <app-send-panel
+          [asset]="selectedAsset"
+          [selectedVariables]="selectedVariables"
+          [isLive]="isLive"
+        ></app-send-panel>
+      </div>
+    </div>
+  </div>
+</div>

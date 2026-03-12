@@ -1,0 +1,152 @@
+<div class="setup-container">
+  <div class="setup-card">
+    <h1 class="setup-title">Plugin_Tecnomatix — Setup</h1>
+    <p class="setup-subtitle">Configure how data is sent to Plant Simulation</p>
+
+    <!-- Step 1: Deployment Mode -->
+    <div class="form-section">
+      <h2 class="section-title">Step 1: How is Plant Simulation deployed?</h2>
+      <div class="radio-group">
+        <label class="radio-option" [class.active]="config.deploymentMode === 'cloud'">
+          <input type="radio" name="deploymentMode" value="cloud"
+            [(ngModel)]="config.deploymentMode" />
+          <span class="radio-label">
+            <strong>Plant Simulation X</strong>
+            <span class="radio-desc">Cloud / SaaS</span>
+          </span>
+        </label>
+        <label class="radio-option" [class.active]="config.deploymentMode === 'onprem'">
+          <input type="radio" name="deploymentMode" value="onprem"
+            [(ngModel)]="config.deploymentMode" />
+          <span class="radio-label">
+            <strong>Plant Simulation Classic</strong>
+            <span class="radio-desc">On-Premises (Desktop)</span>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Cloud Settings -->
+    <div class="form-section" *ngIf="config.deploymentMode === 'cloud'">
+      <h2 class="section-title">Step 2: Connection method</h2>
+      <div class="radio-group radio-group--horizontal">
+        <label class="radio-option" [class.active]="config.cloudMethod === 'mqtt'">
+          <input type="radio" name="cloudMethod" value="mqtt"
+            [(ngModel)]="config.cloudMethod" />
+          <span class="radio-label">
+            <strong>MQTT</strong>
+            <span class="radio-desc">Recommended for live data</span>
+          </span>
+        </label>
+        <label class="radio-option" [class.active]="config.cloudMethod === 'http'">
+          <input type="radio" name="cloudMethod" value="http"
+            [(ngModel)]="config.cloudMethod" />
+          <span class="radio-label">
+            <strong>HTTP REST</strong>
+          </span>
+        </label>
+      </div>
+
+      <!-- MQTT fields -->
+      <div class="fields-group" *ngIf="config.cloudMethod === 'mqtt'">
+        <div class="field">
+          <label class="field-label">MQTT Broker URL</label>
+          <input class="field-input" type="text"
+            placeholder="wss://broker.hivemq.com:8884/mqtt"
+            [(ngModel)]="config.mqttBrokerUrl" />
+        </div>
+        <div class="field">
+          <label class="field-label">MQTT Topic</label>
+          <input class="field-input" type="text"
+            placeholder="ih/plantsim/data"
+            [(ngModel)]="config.mqttTopic" />
+        </div>
+        <div class="field">
+          <label class="field-label">MQTT Username</label>
+          <input class="field-input" type="text"
+            placeholder="Username (optional)"
+            [(ngModel)]="config.mqttUsername" />
+        </div>
+        <div class="field">
+          <label class="field-label">MQTT Password</label>
+          <input class="field-input" type="password"
+            placeholder="Password (optional)"
+            [(ngModel)]="config.mqttPassword" />
+        </div>
+      </div>
+
+      <!-- HTTP REST fields -->
+      <div class="fields-group" *ngIf="config.cloudMethod === 'http'">
+        <div class="field">
+          <label class="field-label">Plant Sim X Endpoint URL</label>
+          <input class="field-input" type="text"
+            placeholder="https://your-plantsimx-instance.com/api/ingest"
+            [(ngModel)]="config.plantSimXEndpoint" />
+        </div>
+        <div class="field">
+          <label class="field-label">API Key</label>
+          <input class="field-input" type="password"
+            placeholder="API Key"
+            [(ngModel)]="config.apiKey" />
+        </div>
+      </div>
+    </div>
+
+    <!-- On-Prem Settings -->
+    <div class="form-section" *ngIf="config.deploymentMode === 'onprem'">
+      <h2 class="section-title">Step 2: Middleware connection</h2>
+      <div class="fields-group">
+        <div class="field">
+          <label class="field-label">Middleware URL</label>
+          <input class="field-input" type="text"
+            placeholder="https://your-pc.ngrok.io"
+            [(ngModel)]="config.middlewareUrl" />
+          <span class="field-hint">
+            The local Node.js middleware running on the Plant Simulation PC.
+            Use a tunneling service (e.g. ngrok) to make it reachable.
+          </span>
+        </div>
+        <div class="field">
+          <label class="field-label">API Key</label>
+          <input class="field-input" type="password"
+            placeholder="API Key (set in middleware config)"
+            [(ngModel)]="config.middlewareApiKey" />
+        </div>
+        <div class="field">
+          <label class="field-label">Plant Sim Port</label>
+          <input class="field-input" type="number"
+            placeholder="30001"
+            [(ngModel)]="config.plantSimPort" />
+          <span class="field-hint">
+            The Plant Simulation HTML interface port (default: 30001).
+            Configured in the middleware, not used directly by this plugin.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Connection Result -->
+    <div class="test-result" *ngIf="testStatus !== 'idle'"
+      [class.test-success]="testStatus === 'success'"
+      [class.test-error]="testStatus === 'error'"
+      [class.test-testing]="testStatus === 'testing'">
+      <span *ngIf="testStatus === 'testing'">Testing connection...</span>
+      <span *ngIf="testStatus === 'success'">&#10003; {{ testMessage }}</span>
+      <span *ngIf="testStatus === 'error'">&#10007; {{ testMessage }}</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="setup-actions">
+      <button class="btn btn-secondary"
+        [disabled]="testStatus === 'testing'"
+        (click)="testConnection()">
+        Test Connection
+      </button>
+      <button class="btn btn-primary"
+        [disabled]="isSaving"
+        (click)="saveAndContinue()">
+        Save &amp; Continue
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+<div class="asset-tree-container">
+  <div class="tree-header">
+    <span class="tree-title">Assets</span>
+    <button class="refresh-btn" title="Reload asset tree" (click)="loadTree()" [disabled]="isLoading">
+      &#8635;
+    </button>
+  </div>
+
+  <input
+    class="search-input"
+    type="text"
+    placeholder="Search assets..."
+    [value]="searchQuery"
+    (input)="onSearch($event)"
+  />
+
+  <div class="breadcrumb" *ngIf="breadcrumb" title="{{ breadcrumb }}">
+    {{ breadcrumb }}
+  </div>
+
+  <div class="tree-loading" *ngIf="isLoading">
+    <span class="spinner"></span>
+    Loading assets...
+  </div>
+
+  <div class="tree-error" *ngIf="errorMessage && !isLoading">
+    {{ errorMessage }}
+    <button class="retry-btn" (click)="loadTree()">Retry</button>
+  </div>
+
+  <div class="tree-body" *ngIf="!isLoading && !errorMessage">
+    <ng-container *ngTemplateOutlet="nodeList; context: { nodes: filteredRoots }"></ng-container>
+  </div>
+</div>
+
+<ng-template #nodeList let-nodes="nodes">
+  <ul class="tree-list">
+    <ng-container *ngFor="let node of nodes; trackBy: trackByAssetId">
+      <li class="tree-item" *ngIf="node.isVisible">
+        <div
+          class="tree-node"
+          [class.active]="isActive(node)"
+          [style.padding-left.px]="node.depth * 16 + 8"
+          (click)="onNodeClick(node)"
+        >
+          <button
+            class="expand-btn"
+            *ngIf="node.children.length > 0"
+            (click)="$event.stopPropagation(); toggleNode(node)"
+          >
+            {{ node.isExpanded ? '▾' : '▸' }}
+          </button>
+          <span class="expand-placeholder" *ngIf="node.children.length === 0"></span>
+
+          <span class="asset-icon">&#128228;</span>
+          <span class="asset-name">{{ node.asset.name }}</span>
+          <span class="asset-type-badge" *ngIf="node.asset.typeId">
+            {{ node.asset.typeId | slice:0:12 }}
+          </span>
+        </div>
+
+        <ng-container *ngIf="node.isExpanded && node.children.length > 0">
+          <ng-container *ngTemplateOutlet="nodeList; context: { nodes: node.children }"></ng-container>
+        </ng-container>
+      </li>
+    </ng-container>
+  </ul>
+</ng-template>

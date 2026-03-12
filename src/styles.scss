@@ -1,0 +1,134 @@
+/* Global styles for Plugin_Tecnomatix */
+@import '@siemens/ix/dist/siemens-ix/siemens-ix.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Siemens Sans', Arial, sans-serif;
+  font-size: 14px;
+  background: var(--theme-color-1);
+  color: var(--theme-color-std-text);
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Toast notifications */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+}
+
+.toast {
+  padding: 12px 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  animation: slideIn 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  &.toast-success {
+    background: #1a7a4a;
+    color: #fff;
+    border-left: 4px solid #2ed47a;
+  }
+
+  &.toast-error {
+    background: #7a1a1a;
+    color: #fff;
+    border-left: 4px solid #e84d4d;
+  }
+
+  &.toast-warning {
+    background: #7a5a1a;
+    color: #fff;
+    border-left: 4px solid #f0a500;
+  }
+
+  &.toast-info {
+    background: #1a4a7a;
+    color: #fff;
+    border-left: 4px solid #2d9cdb;
+  }
+
+  .toast-message {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .toast-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Live indicator pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2ed47a;
+  display: inline-block;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}

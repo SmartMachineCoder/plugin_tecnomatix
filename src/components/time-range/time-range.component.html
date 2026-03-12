@@ -1,0 +1,58 @@
+<div class="time-range-container">
+  <!-- Mode selector -->
+  <div class="mode-row">
+    <span class="mode-label">Mode:</span>
+    <div class="mode-options">
+      <label class="radio-option" [class.active]="selectedMode === 'historic'">
+        <input type="radio" name="mode" value="historic"
+          [checked]="selectedMode === 'historic'"
+          (change)="onModeChange('historic')" />
+        Historic
+      </label>
+      <label class="radio-option" [class.active]="selectedMode === 'live'">
+        <input type="radio" name="mode" value="live"
+          [checked]="selectedMode === 'live'"
+          (change)="onModeChange('live')" />
+        Live
+        <span class="live-indicator" *ngIf="isLive">
+          <span class="live-dot"></span> LIVE
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Historic mode controls -->
+  <div class="historic-controls" *ngIf="selectedMode === 'historic'">
+    <div class="duration-pills">
+      <button
+        *ngFor="let d of ['1h', '4h', '8h', '24h', 'custom']"
+        class="duration-pill"
+        [class.active]="selectedDuration === d"
+        (click)="onDurationChange($any(d))"
+      >
+        {{ d === 'custom' ? 'Custom' : 'Last ' + d }}
+      </button>
+    </div>
+
+    <div class="custom-range" *ngIf="selectedDuration === 'custom'">
+      <div class="custom-range-hint">
+        Use the Insights Hub date/time picker at the top of the screen to select a range.
+        <br />Current: {{ customFrom || '(not set)' }} — {{ customTo || '(not set)' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Live mode controls -->
+  <div class="live-controls" *ngIf="selectedMode === 'live' && isLive">
+    <div class="live-status">
+      <span class="live-dot"></span>
+      LIVE — polling every 2 min
+    </div>
+    <div class="next-send">
+      Next send in: <strong>{{ countdownDisplay }}</strong>
+    </div>
+    <div class="last-sent" *ngIf="lastSentTime">
+      Last sent: {{ lastSentDisplay }}
+    </div>
+  </div>
+</div>

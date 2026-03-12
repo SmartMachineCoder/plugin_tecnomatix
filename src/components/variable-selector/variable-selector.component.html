@@ -1,0 +1,73 @@
+<div class="variable-selector-container">
+  <div class="selector-header">
+    <div class="asset-label" *ngIf="assetName">
+      Asset: <strong>{{ assetName }}</strong>
+    </div>
+    <button class="refresh-btn" title="Reload variables" (click)="loadAspects()" [disabled]="isLoading || !assetId">
+      &#8635;
+    </button>
+  </div>
+
+  <div class="empty-state" *ngIf="!assetId">
+    Select an asset from the tree to view its variables.
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <span class="spinner"></span>
+    Loading aspects &amp; variables...
+  </div>
+
+  <div class="error-state" *ngIf="errorMessage && !isLoading">
+    {{ errorMessage }}
+    <button class="retry-btn" (click)="loadAspects()">Retry</button>
+  </div>
+
+  <div class="aspects-list" *ngIf="!isLoading && !errorMessage && assetId">
+    <div class="no-aspects" *ngIf="aspects.length === 0">
+      No aspects found for this asset.
+    </div>
+
+    <div class="aspect-group" *ngFor="let aspect of aspects; trackBy: trackByAspect">
+      <div class="aspect-header" (click)="toggleAspect(aspect)">
+        <span class="expand-icon">{{ aspect.isExpanded ? '▾' : '▸' }}</span>
+        <label class="select-all-checkbox" (click)="$event.stopPropagation()">
+          <input
+            type="checkbox"
+            [checked]="allSelectedInAspect(aspect)"
+            [indeterminate]="someSelectedInAspect(aspect)"
+            (change)="toggleSelectAll(aspect)"
+          />
+        </label>
+        <span class="aspect-name">{{ aspect.name }}</span>
+        <span class="aspect-count">{{ aspect.variables.length }} vars</span>
+      </div>
+
+      <div class="variables-list" *ngIf="aspect.isExpanded">
+        <div
+          class="variable-row"
+          *ngFor="let variable of aspect.variables; trackBy: trackByVariable"
+          [class.selected]="variable.selected"
+          (click)="toggleVariable(variable)"
+        >
+          <input
+            type="checkbox"
+            [checked]="variable.selected"
+            (change)="toggleVariable(variable)"
+            (click)="$event.stopPropagation()"
+          />
+          <span class="var-name">{{ variable.name }}</span>
+          <span class="var-unit">{{ variable.unit || '—' }}</span>
+          <span class="var-type" [attr.data-type]="variable.dataType">{{ variable.dataType }}</span>
+          <span class="var-value">{{ formatLastValue(variable) }}</span>
+          <span class="var-time">{{ formatTimestamp(variable.lastTimestamp) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="selection-footer" *ngIf="aspects.length > 0">
+    <span class="selection-count" [class.none]="totalSelected === 0">
+      {{ totalSelected }} variable{{ totalSelected !== 1 ? 's' : '' }} selected
+    </span>
+  </div>
+</div>
