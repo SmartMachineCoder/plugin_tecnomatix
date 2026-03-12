@@ -127,7 +127,7 @@ export class AssetService {
   private async fetchWithRetry<T>(url: string, attempt = 1): Promise<T> {
     let response: Response;
     try {
-      response = await fetch(url);
+      response = await fetch(url, { credentials: 'include' });
     } catch (err) {
       if (attempt < 3) {
         await this.delay(Math.pow(2, attempt) * 1000);

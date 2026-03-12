@@ -20,7 +20,7 @@ import { oiPluginBootstrapper } from '@mindsphere/oi-plugin-sdk';
   // Session keep-alive: prevents IH session timeout by pinging the asset API every minute
   // Uses window.location.origin so the request goes to the IH proxy domain when inside Monitor
   setInterval(() => {
-    fetch(`${window.location.origin}/api/assetmanagement/v3/assets?size=1`).catch(() => {
+    fetch(`${window.location.origin}/api/assetmanagement/v3/assets?size=1`, { credentials: 'include' }).catch(() => {
       // Intentionally silent — this is a background keep-alive ping
     });
   }, 60000);
