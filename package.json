@@ -6,7 +6,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:prod": "ng build --configuration production",
+    "build:prod": "ng build --configuration production && cp Staticfile dist/plugin-tecnomatix/browser/Staticfile",
     "watch": "ng build --watch --configuration development"
   },
   "dependencies": {

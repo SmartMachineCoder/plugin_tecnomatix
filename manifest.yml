@@ -1,0 +1,8 @@
+---
+applications:
+- name: tecnomatix
+  memory: 64M
+  instances: 1
+  buildpack: staticfile_buildpack
+  path: dist/plugin-tecnomatix/browser
+  random-route: true
