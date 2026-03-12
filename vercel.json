@@ -3,7 +3,10 @@
   "outputDirectory": "dist/plugin-tecnomatix/browser",
   "framework": null,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/((?!.*\\.).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {
