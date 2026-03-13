@@ -28,6 +28,7 @@ const LIVE_INTERVAL_MS = 120_000; // 2 minutes
 })
 export class TimeRangeComponent implements OnInit, OnDestroy {
   @Output() rangeReady = new EventEmitter<TimeRangeSelection>();
+  @Output() rangeChanged = new EventEmitter<TimeRangeSelection>();
   @Output() liveStopped = new EventEmitter<void>();
 
   selectedMode: SendMode = 'historic';
@@ -82,8 +83,10 @@ export class TimeRangeComponent implements OnInit, OnDestroy {
   onDurationChange(duration: DurationPreset): void {
     this.selectedDuration = duration;
     if (duration === 'custom') {
-      // Activate SDK date/time picker
       try { oiProxy.enableDateTimeRangePicker(); } catch { /* may not be available */ }
+    } else {
+      const range = this.getHistoricRange();
+      this.rangeChanged.emit({ mode: 'historic', ...range });
     }
     this.cdr.markForCheck();
   }

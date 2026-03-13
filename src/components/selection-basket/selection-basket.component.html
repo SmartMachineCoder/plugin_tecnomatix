@@ -19,12 +19,13 @@
   <!-- Grouped by asset -->
   <div class="entries-list" *ngIf="entries.length > 0">
     <div class="asset-group" *ngFor="let group of groupedByAsset">
-      <div class="asset-group-header">
-        <span class="asset-group-icon">&#9634;</span>
+      <div class="asset-group-header" (click)="toggleAssetCollapse(group.asset.assetId)">
+        <span class="collapse-icon">{{ isAssetCollapsed(group.asset.assetId) ? '▸' : '▾' }}</span>
         <span class="asset-group-name" [title]="group.asset.name">{{ group.asset.name }}</span>
         <span class="asset-group-count">{{ group.entries.length }}</span>
       </div>
 
+      <ng-container *ngIf="!isAssetCollapsed(group.asset.assetId)">
       <div class="entry-row" *ngFor="let entry of group.entries; trackBy: trackEntry">
         <div class="entry-info">
           <div class="entry-aspect">{{ entry.aspectName }}</div>
@@ -53,6 +54,7 @@
 
         <button class="remove-btn" (click)="removeEntry.emit(entry)" title="Remove">&#10005;</button>
       </div>
+      </ng-container>
     </div>
   </div>
 

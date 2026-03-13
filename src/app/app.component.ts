@@ -160,6 +160,12 @@ export class AppComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  onRangeChanged(range: TimeRangeSelection): void {
+    this.lastRange = range;
+    this.lastRangeLabel = `${new Date(range.from).toLocaleString()} → ${new Date(range.to).toLocaleString()}`;
+    this.cdr.markForCheck();
+  }
+
   onRangeReady(range: TimeRangeSelection): void {
     this.lastRange = range;
     this.lastRangeLabel = range.mode === 'live' ? 'Live' :

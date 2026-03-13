@@ -38,6 +38,7 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
 
   @ViewChildren('sparkCanvas') sparkCanvases!: QueryList<ElementRef<HTMLCanvasElement>>;
 
+  collapsedAssets = new Set<string>();
   private sparksPending = false;
 
   constructor(
@@ -134,6 +135,19 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
     ctx.lineWidth = 1.5;
     ctx.lineJoin = 'round';
     ctx.stroke();
+  }
+
+  toggleAssetCollapse(assetId: string): void {
+    if (this.collapsedAssets.has(assetId)) {
+      this.collapsedAssets.delete(assetId);
+    } else {
+      this.collapsedAssets.add(assetId);
+    }
+    this.cdr.markForCheck();
+  }
+
+  isAssetCollapsed(assetId: string): boolean {
+    return this.collapsedAssets.has(assetId);
   }
 
   trackEntry(_: number, e: BasketEntry): string {

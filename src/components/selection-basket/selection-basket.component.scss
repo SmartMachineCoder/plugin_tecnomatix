@@ -103,12 +103,18 @@
   gap: 6px;
   padding: 5px 12px;
   background: var(--pt-bg-raised);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+
+  &:hover { background: var(--pt-accent-bg); }
 }
 
-.asset-group-icon {
+.collapse-icon {
   font-size: 11px;
-  color: var(--pt-accent);
+  color: var(--pt-text-muted);
   flex-shrink: 0;
+  width: 12px;
 }
 
 .asset-group-name {

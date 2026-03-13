@@ -69,6 +69,7 @@
         <!-- Time Range -->
         <app-time-range
           (rangeReady)="onRangeReady($event)"
+          (rangeChanged)="onRangeChanged($event)"
           (liveStopped)="onLiveStopped()"
         ></app-time-range>
 
