@@ -1,28 +1,6 @@
 <div class="time-range-container">
-  <!-- Mode selector -->
-  <div class="mode-row">
-    <span class="mode-label">Mode:</span>
-    <div class="mode-options">
-      <label class="radio-option" [class.active]="selectedMode === 'historic'">
-        <input type="radio" name="mode" value="historic"
-          [checked]="selectedMode === 'historic'"
-          (change)="onModeChange('historic')" />
-        Historic
-      </label>
-      <label class="radio-option" [class.active]="selectedMode === 'live'">
-        <input type="radio" name="mode" value="live"
-          [checked]="selectedMode === 'live'"
-          (change)="onModeChange('live')" />
-        Live
-        <span class="live-indicator" *ngIf="isLive">
-          <span class="live-dot"></span> LIVE
-        </span>
-      </label>
-    </div>
-  </div>
-
-  <!-- Historic mode controls -->
-  <div class="historic-controls" *ngIf="selectedMode === 'historic'">
+  <!-- Duration pills — IH Monitor owns the date range context, mode button removed -->
+  <div class="historic-controls">
     <div class="duration-pills">
       <button
         *ngFor="let d of ['1h', '4h', '8h', '24h', 'custom']"
@@ -54,8 +32,8 @@
     </div>
   </div>
 
-  <!-- Live mode controls -->
-  <div class="live-controls" *ngIf="selectedMode === 'live' && isLive">
+  <!-- Live mode status -->
+  <div class="live-controls" *ngIf="isLive">
     <div class="live-status">
       <span class="live-dot"></span>
       LIVE — polling every 2 min

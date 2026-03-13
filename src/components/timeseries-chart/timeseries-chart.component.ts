@@ -4,6 +4,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BasketEntry } from '../selection-basket/selection-basket.component';
+import { TimeseriesService } from '../../services/timeseries.service';
+import { TimeRangeSelection } from '../time-range/time-range.component';
 
 const SERIES_COLORS = [
   '#007878', '#1a5fa0', '#c0392b', '#8a3a8a', '#1a8045',
@@ -19,14 +21,24 @@ const SERIES_COLORS = [
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
+  /** All basket entries (used to resolve drop keys) */
   @Input() entries: BasketEntry[] = [];
   @Input() lastRangeLabel = '';
+  @Input() lastRange: TimeRangeSelection | null = null;
 
   @ViewChild('chartCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
+  /** Entries explicitly dropped into the chart */
+  chartEntries: BasketEntry[] = [];
+  isDragOver = false;
+
   private viewReady = false;
 
-  constructor(private cdr: ChangeDetectorRef, private zone: NgZone) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
+    private timeseriesService: TimeseriesService
+  ) {}
 
   ngAfterViewInit(): void {
     this.viewReady = true;
@@ -39,19 +51,114 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  // ── Drag-and-drop ────────────────────────────────────────────────
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'copy';
+    if (!this.isDragOver) {
+      this.isDragOver = true;
+      this.cdr.markForCheck();
+    }
+  }
+
+  onDragLeave(): void {
+    this.isDragOver = false;
+    this.cdr.markForCheck();
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.isDragOver = false;
+
+    const key = event.dataTransfer?.getData('text/plain');
+    if (!key) { this.cdr.markForCheck(); return; }
+
+    const entry = this.entries.find(e =>
+      `${e.asset.assetId}/${e.aspectName}/${e.variable.name}` === key
+    );
+    if (!entry) { this.cdr.markForCheck(); return; }
+
+    // Avoid duplicates
+    const alreadyAdded = this.chartEntries.some(e =>
+      `${e.asset.assetId}/${e.aspectName}/${e.variable.name}` === key
+    );
+    if (!alreadyAdded) {
+      // Clone entry so we can mutate sparkValues independently
+      const clone: BasketEntry = { ...entry, sparkValues: entry.sparkValues ? [...entry.sparkValues] : undefined };
+      this.chartEntries = [...this.chartEntries, clone];
+      if (!clone.sparkValues?.length && this.lastRange) {
+        this.fetchEntryData(clone);
+      }
+    }
+
+    this.cdr.markForCheck();
+    setTimeout(() => this.draw(), 0);
+  }
+
+  removeChartEntry(entry: BasketEntry): void {
+    this.chartEntries = this.chartEntries.filter(e =>
+      `${e.asset.assetId}/${e.aspectName}/${e.variable.name}` !==
+      `${entry.asset.assetId}/${entry.aspectName}/${entry.variable.name}`
+    );
+    this.cdr.markForCheck();
+    setTimeout(() => this.draw(), 0);
+  }
+
+  clearChart(): void {
+    this.chartEntries = [];
+    this.cdr.markForCheck();
+    setTimeout(() => this.draw(), 0);
+  }
+
+  private async fetchEntryData(entry: BasketEntry): Promise<void> {
+    if (!this.lastRange) return;
+    if (entry.variable.dataType === 'STRING' || entry.variable.dataType === 'BOOLEAN') return;
+
+    entry.sparkLoading = true;
+    this.cdr.markForCheck();
+
+    try {
+      const payload = await this.timeseriesService.fetchAndBuildPayload(
+        entry.asset,
+        [{ aspectName: entry.aspectName, variables: [entry.variable] }],
+        this.lastRange.from,
+        this.lastRange.to,
+        this.lastRange.mode
+      );
+      const varData = payload.variables.find(v => v.name === entry.variable.name);
+      entry.sparkValues = varData?.values
+        .map(v => Number(v.value))
+        .filter(n => !isNaN(n)) ?? [];
+    } catch {
+      entry.sparkValues = [];
+    }
+
+    entry.sparkLoading = false;
+    this.cdr.markForCheck();
+    setTimeout(() => this.draw(), 0);
+  }
+
+  // ── Chart rendering ──────────────────────────────────────────────
+
   get numericEntries(): BasketEntry[] {
-    return this.entries.filter(e =>
+    return this.chartEntries.filter(e =>
       e.sparkValues?.length &&
       e.variable.dataType !== 'STRING' &&
       e.variable.dataType !== 'BOOLEAN'
     );
   }
 
-  get legendItems(): { label: string; color: string }[] {
-    return this.numericEntries.map((e, i) => ({
+  get legendItems(): { label: string; color: string; entry: BasketEntry }[] {
+    return this.chartEntries.map((e, i) => ({
       label: `${e.asset.name} / ${e.variable.name}${e.variable.unit ? ' (' + e.variable.unit + ')' : ''}`,
-      color: SERIES_COLORS[i % SERIES_COLORS.length]
+      color: SERIES_COLORS[i % SERIES_COLORS.length],
+      entry: e
     }));
+  }
+
+  get isLoading(): boolean {
+    return this.chartEntries.some(e => e.sparkLoading);
   }
 
   private draw(): void {
@@ -73,14 +180,13 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
 
     const series = this.numericEntries;
     if (series.length === 0) {
-      // No data placeholder
       ctx.fillStyle = '#9099aa';
       ctx.font = '12px Arial, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(
-        this.entries.length === 0
-          ? 'Select variables to see chart'
-          : 'No numeric data — select a time range first',
+        this.chartEntries.length === 0
+          ? 'Drag variables here from the Selection Basket'
+          : 'No numeric data available for the selected range',
         W / 2, H / 2
       );
       return;
@@ -90,7 +196,6 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
     const plotW = W - padL - padR;
     const plotH = H - padT - padB;
 
-    // Compute global Y range across all series
     let globalMin = Infinity, globalMax = -Infinity;
     for (const e of series) {
       for (const v of e.sparkValues!) {
@@ -112,7 +217,6 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
       ctx.lineTo(padL + plotW, y);
       ctx.stroke();
 
-      // Y axis labels
       const val = globalMax - (i / gridLines) * yRange;
       ctx.fillStyle = '#9099aa';
       ctx.font = '10px Arial, sans-serif';
@@ -137,8 +241,7 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
       pts.forEach(p => ctx.lineTo(p.x, p.y));
       ctx.lineTo(pts[pts.length - 1].x, padT + plotH);
       ctx.closePath();
-      const hex = color;
-      ctx.fillStyle = hex + '18';
+      ctx.fillStyle = color + '18';
       ctx.fill();
 
       // Line

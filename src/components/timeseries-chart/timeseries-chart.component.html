@@ -1,16 +1,25 @@
-<div class="chart-container">
+<div class="chart-container" [class.drag-over]="isDragOver"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave()"
+     (drop)="onDrop($event)">
   <div class="chart-header">
-    <span class="chart-title">Timeseries Preview</span>
+    <span class="chart-title">Timeseries</span>
     <span class="chart-range" *ngIf="lastRangeLabel">{{ lastRangeLabel }}</span>
-    <span class="chart-hint" *ngIf="!lastRangeLabel && entries.length > 0">Select a time range &amp; send to load chart</span>
+    <span class="chart-loading" *ngIf="isLoading">loading…</span>
+    <span class="chart-hint" *ngIf="chartEntries.length === 0">Drag variables here from the Selection Basket</span>
+    <button class="chart-clear-btn" *ngIf="chartEntries.length > 0" (click)="clearChart()" title="Clear chart">&#10005; Clear</button>
   </div>
   <div class="chart-body">
     <canvas #chartCanvas class="chart-canvas"></canvas>
+    <div class="drop-overlay" *ngIf="isDragOver">
+      <span class="drop-hint">Drop to add to chart</span>
+    </div>
   </div>
   <div class="chart-legend" *ngIf="legendItems.length > 0">
     <div class="legend-item" *ngFor="let item of legendItems">
       <span class="legend-dot" [style.background]="item.color"></span>
       <span class="legend-label" [title]="item.label">{{ item.label }}</span>
+      <button class="legend-remove" (click)="removeChartEntry(item.entry)" title="Remove">&#10005;</button>
     </div>
   </div>
 </div>

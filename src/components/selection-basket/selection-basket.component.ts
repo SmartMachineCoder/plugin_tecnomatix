@@ -137,6 +137,12 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
     ctx.stroke();
   }
 
+  onDragStart(event: DragEvent, entry: BasketEntry): void {
+    const key = `${entry.asset.assetId}/${entry.aspectName}/${entry.variable.name}`;
+    event.dataTransfer?.setData('text/plain', key);
+    event.dataTransfer!.effectAllowed = 'copy';
+  }
+
   toggleAssetCollapse(assetId: string): void {
     if (this.collapsedAssets.has(assetId)) {
       this.collapsedAssets.delete(assetId);

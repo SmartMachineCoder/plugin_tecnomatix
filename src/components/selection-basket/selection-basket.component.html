@@ -26,7 +26,8 @@
       </div>
 
       <ng-container *ngIf="!isAssetCollapsed(group.asset.assetId)">
-      <div class="entry-row" *ngFor="let entry of group.entries; trackBy: trackEntry">
+      <div class="entry-row" *ngFor="let entry of group.entries; trackBy: trackEntry"
+           draggable="true" (dragstart)="onDragStart($event, entry)" title="Drag to chart">
         <div class="entry-info">
           <div class="entry-aspect">{{ entry.aspectName }}</div>
           <div class="entry-var">{{ entry.variable.name }}

@@ -4,6 +4,11 @@
   height: 100%;
   background: var(--pt-bg-surface);
   border-top: 1px solid var(--pt-border);
+  transition: box-shadow 0.15s, border-color 0.15s;
+
+  &.drag-over {
+    box-shadow: inset 0 0 0 2px var(--pt-accent);
+  }
 }
 
 .chart-header {
@@ -43,10 +48,50 @@
   padding: 4px 0 0;
 }
 
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 120, 120, 0.08);
+  pointer-events: none;
+}
+
+.drop-hint {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pt-accent);
+  background: var(--pt-bg-surface);
+  border: 2px dashed var(--pt-accent);
+  border-radius: 6px;
+  padding: 8px 20px;
+}
+
 .chart-canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.chart-loading {
+  font-size: 11px;
+  color: var(--pt-text-muted);
+  font-style: italic;
+}
+
+.chart-clear-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--pt-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: color 0.12s;
+
+  &:hover { color: var(--pt-error); }
 }
 
 .chart-legend {
@@ -81,4 +126,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 180px;
+}
+
+.legend-remove {
+  background: none;
+  border: none;
+  color: var(--pt-text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 1px 3px;
+  border-radius: 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.12s;
+
+  &:hover { color: var(--pt-error); }
 }
