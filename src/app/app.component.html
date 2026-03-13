@@ -65,27 +65,17 @@
         ></app-timeseries-chart>
       </div>
 
-      <!-- Bottom bar: Time Range + Send Controls -->
-      <div class="bottom-bar">
-        <!-- Time Range -->
-        <app-time-range
-          (rangeReady)="onRangeReady($event)"
-          (rangeChanged)="onRangeChanged($event)"
-          (liveStopped)="onLiveStopped()"
-        ></app-time-range>
-
-        <!-- Send Panel: status bar + log panel -->
-        <app-send-panel
-          [asset]="selectedAsset"
-          [selectedVariables]="selectedVariables"
-          [basketEntries]="basketEntries"
-          [isLive]="isLive"
-        ></app-send-panel>
-      </div>
     </div>
 
-    <!-- Right panel: Selection Basket -->
+    <!-- Right panel: Time Range + Selection Basket + Send Panel -->
     <div class="basket-panel">
+      <!-- Time Range picker -->
+      <app-time-range
+        (rangeReady)="onRangeReady($event)"
+        (rangeChanged)="onRangeChanged($event)"
+        (liveStopped)="onLiveStopped()"
+      ></app-time-range>
+
       <app-selection-basket
         [entries]="basketEntries"
         [lastRange]="lastRange"
@@ -96,6 +86,14 @@
         (startLive)="onStartLive()"
         (stopLive)="onStopLive()"
       ></app-selection-basket>
+
+      <!-- Send Panel: status + log -->
+      <app-send-panel
+        [asset]="selectedAsset"
+        [selectedVariables]="selectedVariables"
+        [basketEntries]="basketEntries"
+        [isLive]="isLive"
+      ></app-send-panel>
     </div>
   </div>
 </div>

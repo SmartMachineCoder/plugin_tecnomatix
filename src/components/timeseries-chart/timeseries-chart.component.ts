@@ -46,6 +46,12 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['lastRange'] && this.lastRange && this.chartEntries.length > 0) {
+      // Re-fetch all chart entries when the time range is updated
+      for (const entry of this.chartEntries) {
+        this.fetchEntryData(entry);
+      }
+    }
     if (this.viewReady) {
       this.draw();
     }
@@ -84,12 +90,10 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
       `${e.asset.assetId}/${e.aspectName}/${e.variable.name}` === key
     );
     if (!alreadyAdded) {
-      // Clone entry so we can mutate sparkValues independently
-      const clone: BasketEntry = { ...entry, sparkValues: entry.sparkValues ? [...entry.sparkValues] : undefined };
+      // Clone without sparkValues so we always fetch fresh data for the chart
+      const clone: BasketEntry = { ...entry, sparkValues: undefined, sparkLoading: false };
       this.chartEntries = [...this.chartEntries, clone];
-      if (!clone.sparkValues?.length && this.lastRange) {
-        this.fetchEntryData(clone);
-      }
+      this.fetchEntryData(clone);
     }
 
     this.cdr.markForCheck();
@@ -112,8 +116,14 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
   }
 
   private async fetchEntryData(entry: BasketEntry): Promise<void> {
-    if (!this.lastRange) return;
     if (entry.variable.dataType === 'STRING' || entry.variable.dataType === 'BOOLEAN') return;
+
+    // Use current range or fall back to last 1 hour
+    const range = this.lastRange ?? {
+      mode: 'historic' as const,
+      from: new Date(Date.now() - 3_600_000).toISOString(),
+      to: new Date().toISOString()
+    };
 
     entry.sparkLoading = true;
     this.cdr.markForCheck();
@@ -122,9 +132,9 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
       const payload = await this.timeseriesService.fetchAndBuildPayload(
         entry.asset,
         [{ aspectName: entry.aspectName, variables: [entry.variable] }],
-        this.lastRange.from,
-        this.lastRange.to,
-        this.lastRange.mode
+        range.from,
+        range.to,
+        range.mode
       );
       const varData = payload.variables.find(v => v.name === entry.variable.name);
       entry.sparkValues = varData?.values
