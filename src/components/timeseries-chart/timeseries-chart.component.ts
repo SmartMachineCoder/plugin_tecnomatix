@@ -97,7 +97,7 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
     }
 
     this.cdr.markForCheck();
-    setTimeout(() => this.draw(), 0);
+    setTimeout(() => this.draw(), 50);
   }
 
   removeChartEntry(entry: BasketEntry): void {
@@ -106,13 +106,13 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
       `${entry.asset.assetId}/${entry.aspectName}/${entry.variable.name}`
     );
     this.cdr.markForCheck();
-    setTimeout(() => this.draw(), 0);
+    setTimeout(() => this.draw(), 50);
   }
 
   clearChart(): void {
     this.chartEntries = [];
     this.cdr.markForCheck();
-    setTimeout(() => this.draw(), 0);
+    setTimeout(() => this.draw(), 50);
   }
 
   private async fetchEntryData(entry: BasketEntry): Promise<void> {
@@ -126,27 +126,33 @@ export class TimeseriesChartComponent implements OnChanges, AfterViewInit {
     };
 
     entry.sparkLoading = true;
+    entry.sparkValues = undefined;
     this.cdr.markForCheck();
 
     try {
-      const payload = await this.timeseriesService.fetchAndBuildPayload(
+      const values = await this.timeseriesService.fetchRawValues(
         entry.asset,
-        [{ aspectName: entry.aspectName, variables: [entry.variable] }],
+        entry.aspectName,
+        entry.variable,
         range.from,
-        range.to,
-        range.mode
+        range.to
       );
-      const varData = payload.variables.find(v => v.name === entry.variable.name);
-      entry.sparkValues = varData?.values
-        .map(v => Number(v.value))
-        .filter(n => !isNaN(n)) ?? [];
-    } catch {
+      entry.sparkValues = values;
+    } catch (err) {
+      // NO_DATA means empty range — treat as zero points, not an error
       entry.sparkValues = [];
     }
 
     entry.sparkLoading = false;
-    this.cdr.markForCheck();
-    setTimeout(() => this.draw(), 0);
+    // Must run inside Angular zone: OnPush + async fetch runs outside zone by default
+    this.zone.run(() => {
+      this.cdr.markForCheck();
+      // Use a small delay to let the view update before redrawing canvas
+      setTimeout(() => {
+        this.cdr.markForCheck();
+        this.draw();
+      }, 50);
+    });
   }
 
   // ── Chart rendering ──────────────────────────────────────────────

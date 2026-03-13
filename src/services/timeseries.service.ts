@@ -66,6 +66,33 @@ export class TimeseriesService {
     };
   }
 
+  /** Fetch numeric values for a single variable — never throws on empty data */
+  async fetchRawValues(
+    asset: Asset,
+    aspectName: string,
+    variable: Variable,
+    from: string,
+    to: string
+  ): Promise<number[]> {
+    const url = this.ihApi.url(
+      `/api/iottimeseries/v4/timeseries/${asset.assetId}/${aspectName}` +
+      `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&select=${variable.name}&limit=2000`
+    );
+
+    let rows: TimeSeriesDataPoint[];
+    try {
+      rows = await this.fetchWithRetry<TimeSeriesDataPoint[]>(url);
+    } catch {
+      return [];
+    }
+
+    if (!Array.isArray(rows)) return [];
+
+    return rows
+      .map(row => Number(row[variable.name]))
+      .filter(n => !isNaN(n));
+  }
+
   countDataPoints(payload: PlantSimPayload): number {
     return payload.variables.reduce((sum, v) => sum + v.values.length, 0);
   }
