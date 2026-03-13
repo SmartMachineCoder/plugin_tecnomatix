@@ -14,15 +14,11 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' *.mindsphere.io *.eu1.mindsphere.io static.eu1.mindsphere.io; script-src 'self' 'unsafe-inline' 'unsafe-eval' *.mindsphere.io static.eu1.mindsphere.io; style-src 'self' 'unsafe-inline' *.mindsphere.io; connect-src 'self' *.mindsphere.io *.eu1.mindsphere.io wss://*.mindsphere.io; img-src * data:; frame-ancestors *.mindsphere.io *.eu1.mindsphere.io;"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "ALLOW-FROM https://globpsp2.eu1.mindsphere.io"
+          "value": "default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' *; connect-src 'self' * wss://*; img-src * data:; frame-ancestors *;"
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://globpsp2.eu1.mindsphere.io"
+          "value": "*"
         },
         {
           "key": "Access-Control-Allow-Methods",
