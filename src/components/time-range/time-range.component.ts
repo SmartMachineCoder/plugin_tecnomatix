@@ -32,8 +32,12 @@ export class TimeRangeComponent implements OnInit, OnDestroy {
 
   selectedMode: SendMode = 'historic';
   selectedDuration: DurationPreset = '1h';
+  /** UTC ISO strings used for querying */
   customFrom: string = '';
   customTo: string = '';
+  /** Local datetime-local values bound to the inputs (YYYY-MM-DDTHH:mm) */
+  customFromLocal: string = '';
+  customToLocal: string = '';
   isLive = false;
   lastSentTime: Date | null = null;
   nextSendCountdown = 0; // seconds remaining
@@ -56,6 +60,8 @@ export class TimeRangeComponent implements OnInit, OnDestroy {
         if (this.selectedDuration === 'custom') {
           this.customFrom = this.sdkDateRange.from;
           this.customTo = this.sdkDateRange.to;
+          this.customFromLocal = this.isoToLocalInput(this.sdkDateRange.from);
+          this.customToLocal = this.isoToLocalInput(this.sdkDateRange.to);
           this.cdr.markForCheck();
         }
       }
@@ -118,6 +124,33 @@ export class TimeRangeComponent implements OnInit, OnDestroy {
     this.countdownSub = null;
     this.liveStopped.emit();
     this.cdr.markForCheck();
+  }
+
+  /** Called when user changes the From datetime-local input */
+  onCustomFromChange(localValue: string): void {
+    this.customFromLocal = localValue;
+    this.customFrom = localValue ? this.localInputToUtcIso(localValue) : '';
+    this.cdr.markForCheck();
+  }
+
+  /** Called when user changes the To datetime-local input */
+  onCustomToChange(localValue: string): void {
+    this.customToLocal = localValue;
+    this.customTo = localValue ? this.localInputToUtcIso(localValue) : '';
+    this.cdr.markForCheck();
+  }
+
+  /** Convert datetime-local string (YYYY-MM-DDTHH:mm) to UTC ISO string */
+  private localInputToUtcIso(localValue: string): string {
+    // datetime-local gives local time without timezone — treat as local and convert to UTC
+    return new Date(localValue).toISOString();
+  }
+
+  /** Convert UTC ISO to datetime-local input value (local time, YYYY-MM-DDTHH:mm) */
+  private isoToLocalInput(isoString: string): string {
+    const d = new Date(isoString);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   getHistoricRange(): { from: string; to: string } {

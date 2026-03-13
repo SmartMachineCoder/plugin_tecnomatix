@@ -13,6 +13,7 @@ import { AssetTreeComponent } from '../components/asset-tree/asset-tree.componen
 import { VariableSelectorComponent, SelectedVariablesByAspect } from '../components/variable-selector/variable-selector.component';
 import { TimeRangeComponent, TimeRangeSelection } from '../components/time-range/time-range.component';
 import { SendPanelComponent } from '../components/send-panel/send-panel.component';
+import { SelectionBasketComponent, BasketEntry } from '../components/selection-basket/selection-basket.component';
 
 export interface Toast {
   id: number;
@@ -29,7 +30,8 @@ export interface Toast {
     AssetTreeComponent,
     VariableSelectorComponent,
     TimeRangeComponent,
-    SendPanelComponent
+    SendPanelComponent,
+    SelectionBasketComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -41,9 +43,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isSetupDone = false;
   isSettingsOpen = false;
+  isSidebarCollapsed = false;
   activeAssetId: string | null = null;
   selectedAsset: Asset | null = null;
   selectedVariables: SelectedVariablesByAspect[] = [];
+  basketEntries: BasketEntry[] = [];
+  lastRange: TimeRangeSelection | null = null;
   toasts: Toast[] = [];
   isLive = false;
 
@@ -91,6 +96,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   openSettings(): void { this.isSettingsOpen = true; this.cdr.markForCheck(); }
   closeSettings(): void { this.isSettingsOpen = false; this.cdr.markForCheck(); }
+  toggleSidebar(): void { this.isSidebarCollapsed = !this.isSidebarCollapsed; this.cdr.markForCheck(); }
 
   onSettingsSaved(): void {
     this.closeSettings();
@@ -121,16 +127,51 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onVariableSelectionChanged(selection: SelectedVariablesByAspect[]): void {
     this.selectedVariables = selection;
+    // Sync basket: add new selections, remove deselected ones for this asset
+    if (this.selectedAsset) {
+      const asset = this.selectedAsset;
+      // Remove entries for this asset that are no longer selected
+      this.basketEntries = this.basketEntries.filter(e => {
+        if (e.asset.assetId !== asset.assetId) return true;
+        const aspect = selection.find(s => s.aspectName === e.aspectName);
+        return aspect?.variables.some(v => v.name === e.variable.name) ?? false;
+      });
+      // Add newly selected entries
+      for (const aspect of selection) {
+        for (const variable of aspect.variables) {
+          const exists = this.basketEntries.some(
+            e => e.asset.assetId === asset.assetId && e.aspectName === aspect.aspectName && e.variable.name === variable.name
+          );
+          if (!exists) {
+            this.basketEntries = [...this.basketEntries, { asset, aspectName: aspect.aspectName, variable }];
+          }
+        }
+      }
+    }
+    this.cdr.markForCheck();
+  }
+
+  onBasketRemove(entry: BasketEntry): void {
+    this.basketEntries = this.basketEntries.filter(
+      e => !(e.asset.assetId === entry.asset.assetId && e.aspectName === entry.aspectName && e.variable.name === entry.variable.name)
+    );
+    this.cdr.markForCheck();
+  }
+
+  onBasketClear(): void {
+    this.basketEntries = [];
     this.cdr.markForCheck();
   }
 
   onRangeReady(range: TimeRangeSelection): void {
-    if (!this.selectedAsset) { this.showToast('warning', 'Please select an asset before sending.'); return; }
-    if (this.selectedVariables.length === 0) { this.showToast('warning', 'Please select at least one variable before sending.'); return; }
+    this.lastRange = range;
+    if (this.basketEntries.length === 0) { this.showToast('warning', 'Please add variables to the basket before sending.'); return; }
     this.sendPanel?.executeSend(range).catch((err: unknown) => {
       this.handleDeliveryError(err instanceof Error ? err.message : 'Send failed.');
     });
   }
+
+  onBasketSendAll(): void { this.timeRange?.sendHistoric(); }
 
   onSendHistoric(): void { this.timeRange?.sendHistoric(); }
 

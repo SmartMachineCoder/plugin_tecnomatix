@@ -1,6 +1,27 @@
 /* Global styles for Plugin_Tecnomatix */
 @import '@siemens/ix/dist/siemens-ix/siemens-ix.css';
 
+/* ── Light theme overrides ───────────────────────────────────────── */
+:root {
+  --pt-bg-base:        #f5f6f8;
+  --pt-bg-surface:     #ffffff;
+  --pt-bg-raised:      #eef0f4;
+  --pt-bg-toolbar:     #ffffff;
+  --pt-border:         rgba(0, 0, 0, 0.10);
+  --pt-border-strong:  rgba(0, 0, 0, 0.18);
+  --pt-text-primary:   #1a1a2e;
+  --pt-text-secondary: #5a6070;
+  --pt-text-muted:     #9099aa;
+  --pt-accent:         #007878;
+  --pt-accent-hover:   #005f5f;
+  --pt-accent-bg:      rgba(0, 120, 120, 0.08);
+  --pt-success:        #1a8045;
+  --pt-error:          #c0392b;
+  --pt-warning:        #b07000;
+  --pt-live:           #1a8045;
+  --pt-scrollbar:      rgba(0, 0, 0, 0.15);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -11,8 +32,8 @@ html, body {
   padding: 0;
   font-family: 'Siemens Sans', Arial, sans-serif;
   font-size: 14px;
-  background: var(--theme-color-1);
-  color: var(--theme-color-std-text);
+  background: var(--pt-bg-base);
+  color: var(--pt-text-primary);
 }
 
 app-root {
@@ -43,27 +64,27 @@ app-root {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
   &.toast-success {
-    background: #1a7a4a;
-    color: #fff;
-    border-left: 4px solid #2ed47a;
+    background: #e8f5ee;
+    color: #1a5c33;
+    border-left: 4px solid #1a8045;
   }
 
   &.toast-error {
-    background: #7a1a1a;
-    color: #fff;
-    border-left: 4px solid #e84d4d;
+    background: #fdecea;
+    color: #8b1a1a;
+    border-left: 4px solid #c0392b;
   }
 
   &.toast-warning {
-    background: #7a5a1a;
-    color: #fff;
-    border-left: 4px solid #f0a500;
+    background: #fef8e7;
+    color: #7a5000;
+    border-left: 4px solid #b07000;
   }
 
   &.toast-info {
-    background: #1a4a7a;
-    color: #fff;
-    border-left: 4px solid #2d9cdb;
+    background: #e8f2fb;
+    color: #1a4a7a;
+    border-left: 4px solid #2d7db3;
   }
 
   .toast-message {
@@ -125,10 +146,14 @@ app-root {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--pt-scrollbar);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.live-dot {
+  background: var(--pt-live) !important;
 }

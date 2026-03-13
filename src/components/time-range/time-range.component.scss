@@ -5,6 +5,7 @@
   gap: 6px 20px;
   padding: 8px 12px;
   align-items: center;
+  background: var(--pt-bg-raised);
 }
 
 .mode-row {
@@ -24,25 +25,22 @@
 }
 
 .mode-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pt-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
-.mode-options {
-  display: flex;
-  gap: 10px;
-}
+.mode-options { display: flex; gap: 8px; }
 
 .radio-option {
   display: flex;
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--pt-text-secondary);
   cursor: pointer;
   padding: 3px 8px;
   border-radius: 4px;
@@ -50,14 +48,12 @@
   transition: all 0.12s;
 
   &.active {
-    color: #fff;
-    border-color: rgba(0, 153, 153, 0.5);
-    background: rgba(0, 153, 153, 0.08);
+    color: var(--pt-accent);
+    border-color: var(--pt-accent);
+    background: var(--pt-accent-bg);
   }
 
-  input[type="radio"] {
-    accent-color: #009999;
-  }
+  input[type="radio"] { accent-color: var(--pt-accent); }
 }
 
 .live-indicator {
@@ -66,50 +62,77 @@
   gap: 5px;
   font-size: 11px;
   font-weight: 700;
-  color: #2ed47a;
+  color: var(--pt-success);
   margin-left: 4px;
 }
 
-.duration-pills {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+.duration-pills { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .duration-pill {
   padding: 3px 10px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--pt-border-strong);
+  background: var(--pt-bg-surface);
+  color: var(--pt-text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.12s;
 
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.25);
-    color: #fff;
-  }
+  &:hover { border-color: var(--pt-accent); color: var(--pt-accent); }
 
   &.active {
-    background: rgba(0, 153, 153, 0.15);
-    border-color: #009999;
-    color: #fff;
+    background: var(--pt-accent-bg);
+    border-color: var(--pt-accent);
+    color: var(--pt-accent);
+    font-weight: 600;
   }
 }
 
-.custom-range {
-  flex-basis: 100%;
+.custom-range { flex-basis: 100%; }
+
+.custom-fields {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
 }
 
-.custom-range-hint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  line-height: 1.5;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.custom-field { display: flex; flex-direction: column; gap: 3px; }
+
+.custom-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--pt-text-muted);
+}
+
+.custom-dt-input {
+  background: var(--pt-bg-surface);
+  border: 1px solid var(--pt-border-strong);
   border-radius: 4px;
-  padding: 10px 12px;
+  color: var(--pt-text-primary);
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+  color-scheme: light;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: var(--pt-accent); }
+}
+
+.custom-sep {
+  font-size: 14px;
+  color: var(--pt-text-muted);
+  margin-top: 16px;
+}
+
+.custom-utc-hint {
+  font-size: 10px;
+  color: var(--pt-text-muted);
+  margin-top: 16px;
+  white-space: nowrap;
 }
 
 .live-controls {
@@ -127,34 +150,31 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #2ed47a;
+  color: var(--pt-success);
 }
 
 .next-send {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--pt-text-secondary);
 
   strong {
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--pt-text-primary);
     font-variant-numeric: tabular-nums;
   }
 }
 
-.last-sent {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.35);
-}
+.last-sent { font-size: 12px; color: var(--pt-text-muted); }
 
 .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2ed47a;
+  background: var(--pt-success);
   display: inline-block;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50%       { opacity: 0.3; }
 }

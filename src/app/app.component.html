@@ -42,17 +42,21 @@
     </div>
   </div>
 
-  <!-- Main content area: sidebar + right panel -->
-  <div class="content-area">
+  <!-- Main content area: sidebar + variable panel + basket panel -->
+  <div class="content-area" [class.sidebar-collapsed]="isSidebarCollapsed">
     <!-- Left sidebar: Asset Tree -->
     <div class="sidebar">
       <app-asset-tree
+        *ngIf="!isSidebarCollapsed"
         [activeAssetId]="activeAssetId"
         (assetSelected)="onAssetSelectedFromTree($event)"
       ></app-asset-tree>
+      <button class="sidebar-dock-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand' : 'Collapse'">
+        {{ isSidebarCollapsed ? '▶' : '◀' }}
+      </button>
     </div>
 
-    <!-- Right panel: Variable Selector + Bottom bar -->
+    <!-- Middle panel: Variable Selector + Bottom bar -->
     <div class="main-panel">
       <!-- Variable Selector -->
       <div class="variable-area">
@@ -71,38 +75,28 @@
           (liveStopped)="onLiveStopped()"
         ></app-time-range>
 
-        <!-- Send Controls -->
-        <div class="send-controls">
-          <ng-container *ngIf="!isLive">
-            <button
-              class="btn btn-send"
-              [disabled]="selectedVariables.length === 0 || !selectedAsset"
-              (click)="onSendHistoric()"
-            >
-              &#9654; Send to Plant Simulation
-            </button>
-            <button
-              class="btn btn-live"
-              [disabled]="selectedVariables.length === 0 || !selectedAsset"
-              (click)="onStartLive()"
-            >
-              &#9679; Start Live
-            </button>
-          </ng-container>
-          <ng-container *ngIf="isLive">
-            <button class="btn btn-stop" (click)="onStopLive()">
-              &#9632; Stop Live
-            </button>
-          </ng-container>
-        </div>
-
         <!-- Send Panel: status bar + log panel -->
         <app-send-panel
           [asset]="selectedAsset"
           [selectedVariables]="selectedVariables"
+          [basketEntries]="basketEntries"
           [isLive]="isLive"
         ></app-send-panel>
       </div>
+    </div>
+
+    <!-- Right panel: Selection Basket -->
+    <div class="basket-panel">
+      <app-selection-basket
+        [entries]="basketEntries"
+        [lastRange]="lastRange"
+        [isLive]="isLive"
+        (removeEntry)="onBasketRemove($event)"
+        (clearAll)="onBasketClear()"
+        (sendAll)="onBasketSendAll()"
+        (startLive)="onStartLive()"
+        (stopLive)="onStopLive()"
+      ></app-selection-basket>
     </div>
   </div>
 </div>

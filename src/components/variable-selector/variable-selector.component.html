@@ -43,24 +43,28 @@
       </div>
 
       <div class="variables-list" *ngIf="aspect.isExpanded">
-        <div
-          class="variable-row"
-          *ngFor="let variable of aspect.variables; trackBy: trackByVariable"
-          [class.selected]="variable.selected"
-          (click)="toggleVariable(variable)"
-        >
-          <input
-            type="checkbox"
-            [checked]="variable.selected"
-            (change)="toggleVariable(variable)"
-            (click)="$event.stopPropagation()"
-          />
-          <span class="var-name">{{ variable.name }}</span>
-          <span class="var-unit">{{ variable.unit || '—' }}</span>
-          <span class="var-type" [attr.data-type]="variable.dataType">{{ variable.dataType }}</span>
-          <span class="var-value">{{ formatLastValue(variable) }}</span>
-          <span class="var-time">{{ formatTimestamp(variable.lastTimestamp) }}</span>
-        </div>
+        <table class="var-table">
+          <tbody>
+            <tr
+              class="variable-row"
+              *ngFor="let variable of aspect.variables; trackBy: trackByVariable"
+              [class.selected]="variable.selected"
+              (click)="toggleVariable(variable)"
+            >
+              <td>
+                <input
+                  type="checkbox"
+                  [checked]="variable.selected"
+                  (change)="toggleVariable(variable)"
+                  (click)="$event.stopPropagation()"
+                />
+              </td>
+              <td class="var-name">{{ variable.name }}</td>
+              <td class="var-unit">{{ variable.unit || '—' }}</td>
+              <td><span class="var-type" [attr.data-type]="variable.dataType">{{ variable.dataType }}</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

@@ -1,172 +1,132 @@
 .send-panel-container {
   padding: 4px 12px 6px;
+  background: var(--pt-bg-raised);
 }
 
 .status-bar {
   display: flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 26px;
 }
 
 .status-text {
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
 
-  &.idle {
-    color: rgba(255, 255, 255, 0.4);
-  }
-
-  &.loading {
-    color: #2d9cdb;
-  }
-
-  &.success {
-    color: #2ed47a;
-  }
-
-  &.error {
-    color: #e84d4d;
-  }
+  &.idle    { color: var(--pt-text-muted); }
+  &.loading { color: #1a5fa0; }
+  &.success { color: var(--pt-success); }
+  &.error   { color: var(--pt-error); }
 }
 
 .spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(45, 156, 219, 0.2);
-  border-top-color: #2d9cdb;
+  border: 2px solid var(--pt-border);
+  border-top-color: #1a5fa0;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
   display: inline-block;
   flex-shrink: 0;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* Log Panel */
+/* ── Log Panel ───────────────────────────────────────────────────── */
 .log-panel {
   position: fixed;
   top: 0;
   right: -480px;
   width: 480px;
   height: 100vh;
-  background: #1e1e2e;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--pt-bg-surface);
+  border-left: 1px solid var(--pt-border-strong);
   display: flex;
   flex-direction: column;
   z-index: 1000;
   transition: right 0.25s ease;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+  box-shadow: -4px 0 20px rgba(0,0,0,0.12);
 
-  &.open {
-    right: 0;
-  }
+  &.open { right: 0; }
 }
 
 .log-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--pt-border);
   flex-shrink: 0;
+  background: var(--pt-bg-raised);
 }
 
 .log-panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--theme-color-std-text, #fff);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pt-text-primary);
 }
 
-.log-panel-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.log-panel-actions { display: flex; align-items: center; gap: 8px; }
 
 .log-action-btn {
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--pt-bg-raised);
+  border: 1px solid var(--pt-border);
+  color: var(--pt-text-secondary);
   border-radius: 3px;
-  padding: 4px 10px;
+  padding: 3px 10px;
   cursor: pointer;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
+  &:hover { border-color: var(--pt-accent); color: var(--pt-accent); }
 }
 
 .log-close-btn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--pt-text-muted);
   cursor: pointer;
   font-size: 16px;
   padding: 2px 4px;
 
-  &:hover {
-    color: rgba(255, 255, 255, 0.9);
-  }
+  &:hover { color: var(--pt-text-primary); }
 }
 
 .log-entries {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 4px 0;
   font-family: 'Courier New', monospace;
 }
 
 .log-empty {
   padding: 20px 16px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--pt-text-muted);
   text-align: center;
 }
 
 .log-entry {
   display: flex;
   gap: 8px;
-  padding: 5px 16px;
-  font-size: 12px;
+  padding: 4px 14px;
+  font-size: 11px;
   line-height: 1.4;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--pt-border);
 
-  &.log-level-success .log-message {
-    color: #2ed47a;
-  }
-
-  &.log-level-error .log-message {
-    color: #e84d4d;
-  }
-
-  &.log-level-warning .log-message {
-    color: #f0a500;
-  }
-
-  &.log-level-info .log-message {
-    color: rgba(255, 255, 255, 0.6);
-  }
+  &.log-level-success .log-message { color: var(--pt-success); }
+  &.log-level-error   .log-message { color: var(--pt-error); }
+  &.log-level-warning .log-message { color: var(--pt-warning); }
+  &.log-level-info    .log-message { color: var(--pt-text-secondary); }
 }
 
-.log-time {
-  color: rgba(255, 255, 255, 0.25);
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.log-message {
-  flex: 1;
-  word-break: break-word;
-}
+.log-time    { color: var(--pt-text-muted); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.log-message { flex: 1; word-break: break-word; }
 
 .log-backdrop {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0,0,0,0.2);
 }

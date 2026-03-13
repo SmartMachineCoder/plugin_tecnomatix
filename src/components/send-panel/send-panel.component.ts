@@ -8,6 +8,7 @@ import { takeUntil } from 'rxjs/operators';
 import { Asset } from '../../models/asset.model';
 import { PlantSimPayload } from '../../models/timeseries.model';
 import { SelectedVariablesByAspect } from '../variable-selector/variable-selector.component';
+import { BasketEntry } from '../selection-basket/selection-basket.component';
 import { TimeRangeSelection } from '../time-range/time-range.component';
 import { TimeseriesService } from '../../services/timeseries.service';
 import { DeliveryService } from '../../services/delivery.service';
@@ -26,6 +27,7 @@ export type SendStatus = 'idle' | 'fetching' | 'sending' | 'success' | 'error';
 export class SendPanelComponent implements OnInit, OnDestroy {
   @Input() asset: Asset | null = null;
   @Input() selectedVariables: SelectedVariablesByAspect[] = [];
+  @Input() basketEntries: BasketEntry[] = [];
   @Input() isLive = false;
 
   sendStatus: SendStatus = 'idle';
@@ -65,31 +67,52 @@ export class SendPanelComponent implements OnInit, OnDestroy {
   }
 
   async executeSend(range: TimeRangeSelection): Promise<void> {
-    if (!this.asset) return;
-
     this.sendStatus = 'fetching';
     this.statusMessage = 'Fetching data from Insights Hub...';
     this.cdr.markForCheck();
 
     try {
-      const payload = await this.timeseriesService.fetchAndBuildPayload(
-        this.asset,
-        this.selectedVariables,
-        range.from,
-        range.to,
-        range.mode
-      );
+      // Group basket entries by asset
+      const assetMap = new Map<string, { asset: Asset; byAspect: Map<string, SelectedVariablesByAspect> }>();
+      for (const entry of this.basketEntries) {
+        if (!assetMap.has(entry.asset.assetId)) {
+          assetMap.set(entry.asset.assetId, { asset: entry.asset, byAspect: new Map() });
+        }
+        const group = assetMap.get(entry.asset.assetId)!;
+        if (!group.byAspect.has(entry.aspectName)) {
+          group.byAspect.set(entry.aspectName, { aspectName: entry.aspectName, variables: [] });
+        }
+        group.byAspect.get(entry.aspectName)!.variables.push(entry.variable);
+      }
 
-      this.sendStatus = 'sending';
-      this.statusMessage = 'Sending to Plant Simulation...';
-      this.lastPayload = payload;
-      this.cdr.markForCheck();
+      // Fall back to single-asset mode if basket is empty
+      if (assetMap.size === 0 && this.asset && this.selectedVariables.length > 0) {
+        assetMap.set(this.asset.assetId, {
+          asset: this.asset,
+          byAspect: new Map(this.selectedVariables.map(s => [s.aspectName, s]))
+        });
+      }
 
-      await this.deliveryService.sendToPlantSimulation(payload);
+      let totalVars = 0, totalPts = 0;
+      for (const { asset, byAspect } of assetMap.values()) {
+        const payload = await this.timeseriesService.fetchAndBuildPayload(
+          asset,
+          Array.from(byAspect.values()),
+          range.from,
+          range.to,
+          range.mode
+        );
+        this.sendStatus = 'sending';
+        this.statusMessage = `Sending ${asset.name}...`;
+        this.lastPayload = payload;
+        this.cdr.markForCheck();
+        await this.deliveryService.sendToPlantSimulation(payload);
+        totalVars += payload.variables.length;
+        totalPts += this.timeseriesService.countDataPoints(payload);
+      }
 
-      const pts = this.timeseriesService.countDataPoints(payload);
       this.sendStatus = 'success';
-      this.statusMessage = `Sent ${payload.variables.length} variables, ${pts} data points`;
+      this.statusMessage = `Sent ${totalVars} variables, ${totalPts} data points`;
     } catch (err) {
       this.sendStatus = 'error';
       this.statusMessage = err instanceof Error ? err.message : 'Send failed.';

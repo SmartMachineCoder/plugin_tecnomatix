@@ -35,9 +35,21 @@
     </div>
 
     <div class="custom-range" *ngIf="selectedDuration === 'custom'">
-      <div class="custom-range-hint">
-        Use the Insights Hub date/time picker at the top of the screen to select a range.
-        <br />Current: {{ customFrom || '(not set)' }} — {{ customTo || '(not set)' }}
+      <div class="custom-fields">
+        <div class="custom-field">
+          <label class="custom-label">From</label>
+          <input class="custom-dt-input" type="datetime-local"
+            [ngModel]="customFromLocal"
+            (ngModelChange)="onCustomFromChange($event)" />
+        </div>
+        <span class="custom-sep">→</span>
+        <div class="custom-field">
+          <label class="custom-label">To</label>
+          <input class="custom-dt-input" type="datetime-local"
+            [ngModel]="customToLocal"
+            (ngModelChange)="onCustomToChange($event)" />
+        </div>
+        <span class="custom-utc-hint" *ngIf="customFrom">UTC: {{ customFrom | slice:0:16 }}Z</span>
       </div>
     </div>
   </div>

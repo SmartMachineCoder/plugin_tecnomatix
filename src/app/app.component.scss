@@ -3,6 +3,8 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background: var(--pt-bg-base);
+  color: var(--pt-text-primary);
 }
 
 /* ── Toolbar ─────────────────────────────────────────────────────── */
@@ -12,36 +14,35 @@
   justify-content: space-between;
   padding: 0 12px;
   height: 36px;
-  background: #16162a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--pt-bg-toolbar);
+  border-bottom: 1px solid var(--pt-border-strong);
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 .toolbar-title {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--pt-text-primary);
   letter-spacing: 0.3px;
 }
 
-.toolbar-actions {
-  display: flex;
-  gap: 6px;
-}
+.toolbar-actions { display: flex; gap: 6px; }
 
 .toolbar-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--pt-bg-raised);
+  border: 1px solid var(--pt-border);
+  color: var(--pt-text-secondary);
   border-radius: 4px;
   font-size: 12px;
-  padding: 5px 10px;
+  padding: 4px 10px;
   cursor: pointer;
   transition: all 0.12s;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
+    background: var(--pt-accent-bg);
+    border-color: var(--pt-accent);
+    color: var(--pt-accent);
   }
 }
 
@@ -62,22 +63,58 @@
 
 /* ── Sidebar (Asset Tree) ────────────────────────────────────────── */
 .sidebar {
-  width: clamp(180px, 25%, 280px);
+  width: clamp(180px, 22%, 260px);
   flex-shrink: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--pt-border);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
+  transition: width 0.2s ease;
+  background: var(--pt-bg-surface);
 }
 
-/* ── Main Panel ──────────────────────────────────────────────────── */
+.sidebar-collapsed .sidebar {
+  width: 28px;
+  min-width: 28px;
+}
+
+.sidebar-dock-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: var(--pt-bg-raised);
+  border: 1px solid var(--pt-border);
+  border-radius: 3px;
+  color: var(--pt-text-muted);
+  font-size: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 10;
+  transition: all 0.12s;
+
+  &:hover {
+    background: var(--pt-accent-bg);
+    border-color: var(--pt-accent);
+    color: var(--pt-accent);
+  }
+}
+
+/* ── Middle Panel (variable selector) ───────────────────────────── */
 .main-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  border-right: 1px solid var(--pt-border);
+  background: var(--pt-bg-surface);
 }
 
 .variable-area {
@@ -88,10 +125,21 @@
   min-height: 0;
 }
 
+/* ── Basket Panel (3rd column) ───────────────────────────────────── */
+.basket-panel {
+  width: clamp(240px, 30%, 400px);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--pt-bg-base);
+}
+
 /* ── Bottom Bar ──────────────────────────────────────────────────── */
 .bottom-bar {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #16162a;
+  border-top: 1px solid var(--pt-border);
+  background: var(--pt-bg-raised);
   flex-shrink: 0;
   padding-bottom: 2px;
   max-height: 160px;
@@ -106,25 +154,28 @@
   align-items: center;
 }
 
-/* ── Narrow layout: stack sidebar above main panel ───────────────── */
-@media (max-width: 680px) {
-  .content-area {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    max-height: 220px;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    flex-shrink: 0;
-  }
-
-  .bottom-bar {
-    max-height: none;
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .basket-panel {
+    display: none;
   }
 }
 
+@media (max-width: 680px) {
+  .content-area { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid var(--pt-border);
+    flex-shrink: 0;
+  }
+
+  .bottom-bar { max-height: none; }
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
 .btn {
   padding: 6px 14px;
   border-radius: 4px;
@@ -134,45 +185,36 @@
   cursor: pointer;
   transition: all 0.12s;
 
-  &:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 
 .btn-send {
-  background: #009999;
+  background: var(--pt-accent);
   color: #fff;
 
-  &:hover:not(:disabled) {
-    background: #00b3b3;
-  }
+  &:hover:not(:disabled) { background: var(--pt-accent-hover); }
 }
 
 .btn-live {
-  background: rgba(46, 212, 122, 0.12);
-  border: 1px solid rgba(46, 212, 122, 0.35);
-  color: #2ed47a;
+  background: rgba(26, 128, 69, 0.1);
+  border: 1px solid rgba(26, 128, 69, 0.35);
+  color: var(--pt-success);
 
-  &:hover:not(:disabled) {
-    background: rgba(46, 212, 122, 0.2);
-  }
+  &:hover:not(:disabled) { background: rgba(26, 128, 69, 0.18); }
 }
 
 .btn-stop {
-  background: rgba(232, 77, 77, 0.12);
-  border: 1px solid rgba(232, 77, 77, 0.35);
-  color: #e84d4d;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.35);
+  color: var(--pt-error);
   animation: pulse-border 1.5s ease-in-out infinite;
 
-  &:hover {
-    background: rgba(232, 77, 77, 0.2);
-  }
+  &:hover { background: rgba(192, 57, 43, 0.15); }
 }
 
 @keyframes pulse-border {
-  0%, 100% { border-color: rgba(232, 77, 77, 0.35); }
-  50% { border-color: rgba(232, 77, 77, 0.8); }
+  0%, 100% { border-color: rgba(192, 57, 43, 0.35); }
+  50%       { border-color: rgba(192, 57, 43, 0.75); }
 }
 
 /* ── Settings Overlay ────────────────────────────────────────────── */
@@ -189,7 +231,7 @@
 .settings-overlay-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.35);
 }
 
 .settings-overlay-panel {
@@ -200,27 +242,25 @@
   max-height: calc(100vh - 80px);
   overflow-y: auto;
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
 }
 
 .settings-danger-zone {
-  background: #1e1e2e;
-  border-top: 1px solid rgba(232, 77, 77, 0.2);
+  background: var(--pt-bg-raised);
+  border-top: 1px solid rgba(192, 57, 43, 0.2);
   padding: 12px 32px;
   display: flex;
   justify-content: flex-start;
 }
 
 .btn-danger {
-  background: rgba(232, 77, 77, 0.1);
-  border: 1px solid rgba(232, 77, 77, 0.3);
-  color: #e84d4d;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.3);
+  color: var(--pt-error);
   border-radius: 4px;
   padding: 7px 14px;
   font-size: 12px;
   cursor: pointer;
 
-  &:hover {
-    background: rgba(232, 77, 77, 0.2);
-  }
+  &:hover { background: rgba(192, 57, 43, 0.15); }
 }

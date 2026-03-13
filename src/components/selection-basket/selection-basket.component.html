@@ -1,0 +1,78 @@
+<div class="basket-container">
+  <!-- Header -->
+  <div class="basket-header">
+    <span class="basket-title">Selection Basket</span>
+    <span class="basket-count" [class.none]="entries.length === 0">
+      {{ entries.length }} variable{{ entries.length !== 1 ? 's' : '' }}
+    </span>
+    <button class="clear-btn" *ngIf="entries.length > 0" (click)="clearAll.emit()" title="Clear all">
+      &#10005; Clear
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="entries.length === 0">
+    <div class="empty-icon">&#9741;</div>
+    <div class="empty-text">No variables selected yet.<br>Check variables in the left panel to add them here.</div>
+  </div>
+
+  <!-- Grouped by asset -->
+  <div class="entries-list" *ngIf="entries.length > 0">
+    <div class="asset-group" *ngFor="let group of groupedByAsset">
+      <div class="asset-group-header">
+        <span class="asset-group-icon">&#9634;</span>
+        <span class="asset-group-name" [title]="group.asset.name">{{ group.asset.name }}</span>
+        <span class="asset-group-count">{{ group.entries.length }}</span>
+      </div>
+
+      <div class="entry-row" *ngFor="let entry of group.entries; trackBy: trackEntry">
+        <div class="entry-info">
+          <div class="entry-aspect">{{ entry.aspectName }}</div>
+          <div class="entry-var">{{ entry.variable.name }}
+            <span class="entry-unit" *ngIf="entry.variable.unit"> · {{ entry.variable.unit }}</span>
+          </div>
+        </div>
+
+        <!-- Sparkline canvas (for numeric types) -->
+        <div class="entry-spark">
+          <div class="spark-loading" *ngIf="entry.sparkLoading">
+            <span class="spinner"></span>
+          </div>
+          <canvas
+            #sparkCanvas
+            *ngIf="!entry.sparkLoading && entry.sparkValues?.length"
+            width="80" height="28"
+            class="spark-canvas"
+            [title]="entry.variable.name + ' trend'"
+          ></canvas>
+          <span class="spark-na" *ngIf="!entry.sparkLoading && !entry.sparkValues?.length
+            && entry.variable.dataType !== 'STRING' && entry.variable.dataType !== 'BOOLEAN'
+            && lastRange">—</span>
+          <span class="entry-type-badge" [attr.data-type]="entry.variable.dataType">{{ entry.variable.dataType }}</span>
+        </div>
+
+        <button class="remove-btn" (click)="removeEntry.emit(entry)" title="Remove">&#10005;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions footer -->
+  <div class="basket-footer" *ngIf="entries.length > 0">
+    <ng-container *ngIf="!isLive">
+      <button class="btn btn-send" (click)="sendAll.emit()">
+        &#9654; Send to Plant Sim
+      </button>
+      <button class="btn btn-live" (click)="startLive.emit()">
+        &#9679; Live
+      </button>
+    </ng-container>
+    <ng-container *ngIf="isLive">
+      <div class="live-indicator">
+        <span class="live-dot"></span> LIVE
+      </div>
+      <button class="btn btn-stop" (click)="stopLive.emit()">
+        &#9632; Stop
+      </button>
+    </ng-container>
+  </div>
+</div>
