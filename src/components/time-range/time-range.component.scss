@@ -1,14 +1,26 @@
 .time-range-container {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px 16px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  padding: 8px 12px;
+  align-items: center;
 }
 
 .mode-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.historic-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .mode-label {
@@ -28,11 +40,11 @@
 .radio-option {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 5px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  padding: 5px 10px;
+  padding: 3px 8px;
   border-radius: 4px;
   border: 1px solid transparent;
   transition: all 0.12s;
@@ -65,7 +77,7 @@
 }
 
 .duration-pill {
-  padding: 5px 12px;
+  padding: 3px 10px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.04);
@@ -87,7 +99,7 @@
 }
 
 .custom-range {
-  margin-top: 8px;
+  flex-basis: 100%;
 }
 
 .custom-range-hint {
@@ -103,8 +115,10 @@
 .live-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .live-status {
