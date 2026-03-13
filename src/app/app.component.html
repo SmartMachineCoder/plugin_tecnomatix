@@ -67,14 +67,20 @@
 
     </div>
 
-    <!-- Right panel: Time Range + Selection Basket + Send Panel -->
+    <!-- Right panel: Selection Basket + Send Panel -->
     <div class="basket-panel">
-      <!-- Time Range picker -->
-      <app-time-range
-        (rangeReady)="onRangeReady($event)"
-        (rangeChanged)="onRangeChanged($event)"
-        (liveStopped)="onLiveStopped()"
-      ></app-time-range>
+      <!-- Active range indicator -->
+      <div class="range-indicator" *ngIf="lastRangeLabel && !isLive">
+        <span class="range-icon">&#128197;</span>
+        <span class="range-text">{{ lastRangeLabel }}</span>
+      </div>
+      <div class="range-indicator range-live" *ngIf="isLive">
+        <span class="live-dot"></span>
+        <span class="range-text">LIVE — next in {{ liveCountdownDisplay }}</span>
+      </div>
+      <div class="range-indicator range-none" *ngIf="!lastRangeLabel && !isLive">
+        <span class="range-text">Select a time range in the Monitor date picker</span>
+      </div>
 
       <app-selection-basket
         [entries]="basketEntries"

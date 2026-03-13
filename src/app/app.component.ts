@@ -2,7 +2,8 @@ import {
   Component, OnInit, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { oiProxy } from '@mindsphere/oi-plugin-sdk';
+import { oiProxy, DateRange } from '@mindsphere/oi-plugin-sdk';
+import { Subscription, interval } from 'rxjs';
 
 import { Asset } from '../models/asset.model';
 import { ConfigService } from '../services/config.service';
@@ -10,16 +11,18 @@ import { AssetService } from '../services/asset.service';
 
 import { SetupComponent } from '../components/setup/setup.component';
 import { VariableSelectorComponent, SelectedVariablesByAspect } from '../components/variable-selector/variable-selector.component';
-import { TimeRangeComponent, TimeRangeSelection } from '../components/time-range/time-range.component';
 import { SendPanelComponent } from '../components/send-panel/send-panel.component';
 import { SelectionBasketComponent, BasketEntry } from '../components/selection-basket/selection-basket.component';
 import { TimeseriesChartComponent } from '../components/timeseries-chart/timeseries-chart.component';
+import { TimeRangeSelection } from '../components/time-range/time-range.component';
 
 export interface Toast {
   id: number;
   level: 'success' | 'error' | 'warning' | 'info';
   message: string;
 }
+
+const LIVE_INTERVAL_MS = 120_000; // 2 minutes
 
 @Component({
   selector: 'app-root',
@@ -28,7 +31,6 @@ export interface Toast {
     CommonModule,
     SetupComponent,
     VariableSelectorComponent,
-    TimeRangeComponent,
     SendPanelComponent,
     SelectionBasketComponent,
     TimeseriesChartComponent
@@ -39,7 +41,6 @@ export interface Toast {
 })
 export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(SendPanelComponent) sendPanel?: SendPanelComponent;
-  @ViewChild(TimeRangeComponent) timeRange?: TimeRangeComponent;
 
   isSetupDone = false;
   isSettingsOpen = false;
@@ -51,9 +52,12 @@ export class AppComponent implements OnInit, OnDestroy {
   lastRangeLabel = '';
   toasts: Toast[] = [];
   isLive = false;
+  liveCountdown = 0; // seconds remaining
 
   private toastCounter = 0;
   private sdkSubs: { unsubscribe(): void }[] = [];
+  private liveTimerSub: Subscription | null = null;
+  private countdownSub: Subscription | null = null;
 
   constructor(
     private configService: ConfigService,
@@ -64,17 +68,31 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isSetupDone = this.configService.isConfigured();
 
+    // Track the selected asset from IH Monitor
     this.sdkSubs.push(
       oiProxy.assetId.subscribe((assetId: string) => {
         this.onAssetChanged(assetId);
       })
     );
 
+    // Use the Monitor's date range picker as the sole time range source
+    this.sdkSubs.push(
+      oiProxy.dateRange.subscribe((range: DateRange) => {
+        if (range) {
+          const from = range.start instanceof Date ? range.start.toISOString() : String(range.start);
+          const to = range.end instanceof Date ? range.end.toISOString() : String(range.end);
+          this.lastRange = { mode: 'historic', from, to };
+          this.lastRangeLabel = `${new Date(from).toLocaleString()} → ${new Date(to).toLocaleString()}`;
+          this.cdr.markForCheck();
+        }
+      })
+    );
+
+    // Stop live mode when plugin becomes inactive
     this.sdkSubs.push(
       oiProxy.active.subscribe((isActive: boolean) => {
         if (!isActive && this.isLive) {
-          this.timeRange?.stopLiveMode();
-          this.isLive = false;
+          this.stopLive();
           this.showToast('info', 'Live mode stopped — plugin tab became inactive.');
         }
       })
@@ -82,6 +100,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopLive();
     for (const sub of this.sdkSubs) {
       try { sub.unsubscribe(); } catch { /* ignore */ }
     }
@@ -124,16 +143,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onVariableSelectionChanged(selection: SelectedVariablesByAspect[]): void {
     this.selectedVariables = selection;
-    // Sync basket: add new selections, remove deselected ones for this asset
     if (this.selectedAsset) {
       const asset = this.selectedAsset;
-      // Remove entries for this asset that are no longer selected
       this.basketEntries = this.basketEntries.filter(e => {
         if (e.asset.assetId !== asset.assetId) return true;
         const aspect = selection.find(s => s.aspectName === e.aspectName);
         return aspect?.variables.some(v => v.name === e.variable.name) ?? false;
       });
-      // Add newly selected entries
       for (const aspect of selection) {
         for (const variable of aspect.variables) {
           const exists = this.basketEntries.some(
@@ -160,39 +176,69 @@ export class AppComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  onRangeChanged(range: TimeRangeSelection): void {
-    this.lastRange = range;
-    this.lastRangeLabel = `${new Date(range.from).toLocaleString()} → ${new Date(range.to).toLocaleString()}`;
-    this.cdr.markForCheck();
-  }
-
-  onRangeReady(range: TimeRangeSelection): void {
-    this.lastRange = range;
-    this.lastRangeLabel = range.mode === 'live' ? 'Live' :
-      `${new Date(range.from).toLocaleString()} → ${new Date(range.to).toLocaleString()}`;
-    if (this.basketEntries.length === 0) { this.showToast('warning', 'Please add variables to the basket before sending.'); return; }
-    this.sendPanel?.executeSend(range).catch((err: unknown) => {
+  /** Send to Plant Sim using the Monitor's current time range */
+  onBasketSendAll(): void {
+    if (!this.lastRange) {
+      this.showToast('warning', 'Please select a time range in the Monitor date picker first.');
+      return;
+    }
+    if (this.basketEntries.length === 0) {
+      this.showToast('warning', 'Please add variables to the basket before sending.');
+      return;
+    }
+    this.sendPanel?.executeSend(this.lastRange).catch((err: unknown) => {
       this.handleDeliveryError(err instanceof Error ? err.message : 'Send failed.');
     });
   }
 
-  onBasketSendAll(): void { this.timeRange?.sendHistoric(); }
-
-  onSendHistoric(): void { this.timeRange?.sendHistoric(); }
-
   onStartLive(): void {
     this.isLive = true;
-    this.timeRange?.startLiveMode();
+    this.liveCountdown = LIVE_INTERVAL_MS / 1000;
+    this.executeLiveSend();
+
+    this.liveTimerSub = interval(LIVE_INTERVAL_MS).subscribe(() => {
+      this.executeLiveSend();
+      this.liveCountdown = LIVE_INTERVAL_MS / 1000;
+      this.cdr.markForCheck();
+    });
+
+    this.countdownSub = interval(1000).subscribe(() => {
+      if (this.liveCountdown > 0) this.liveCountdown--;
+      this.cdr.markForCheck();
+    });
+
     this.cdr.markForCheck();
   }
 
   onStopLive(): void {
+    this.stopLive();
+  }
+
+  private stopLive(): void {
     this.isLive = false;
-    this.timeRange?.stopLiveMode();
+    this.liveTimerSub?.unsubscribe(); this.liveTimerSub = null;
+    this.countdownSub?.unsubscribe(); this.countdownSub = null;
     this.cdr.markForCheck();
   }
 
-  onLiveStopped(): void { this.isLive = false; this.cdr.markForCheck(); }
+  private executeLiveSend(): void {
+    const to = new Date();
+    const from = new Date(to.getTime() - LIVE_INTERVAL_MS);
+    const liveRange: TimeRangeSelection = { mode: 'live', from: from.toISOString(), to: to.toISOString() };
+    this.lastRange = liveRange;
+    this.lastRangeLabel = 'Live';
+    this.sendPanel?.executeSend(liveRange).catch((err: unknown) => {
+      this.handleDeliveryError(err instanceof Error ? err.message : 'Send failed.');
+    });
+    this.cdr.markForCheck();
+  }
+
+  get liveCountdownDisplay(): string {
+    const m = Math.floor(this.liveCountdown / 60);
+    const s = this.liveCountdown % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
   toggleLog(): void { this.sendPanel?.toggleLog(); }
 
   showToast(level: Toast['level'], message: string, durationMs = 5000): void {

@@ -101,11 +101,35 @@
   border-left: 1px solid var(--pt-border);
 }
 
-/* ── Bottom Bar ──────────────────────────────────────────────────── */
-.bottom-bar {
-  border-top: 1px solid var(--pt-border);
-  background: var(--pt-bg-raised);
+/* ── Range Indicator (replaces time-range component) ────────────── */
+.range-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--pt-border);
   flex-shrink: 0;
+  background: var(--pt-bg-raised);
+
+  .range-icon { font-size: 12px; }
+
+  .range-text {
+    font-size: 11px;
+    color: var(--pt-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &.range-live .range-text {
+    color: var(--pt-success);
+    font-weight: 600;
+  }
+
+  &.range-none .range-text {
+    color: var(--pt-text-muted);
+    font-style: italic;
+  }
 }
 
 .send-controls {
