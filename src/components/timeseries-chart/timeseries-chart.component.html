@@ -1,0 +1,16 @@
+<div class="chart-container">
+  <div class="chart-header">
+    <span class="chart-title">Timeseries Preview</span>
+    <span class="chart-range" *ngIf="lastRangeLabel">{{ lastRangeLabel }}</span>
+    <span class="chart-hint" *ngIf="!lastRangeLabel && entries.length > 0">Select a time range &amp; send to load chart</span>
+  </div>
+  <div class="chart-body">
+    <canvas #chartCanvas class="chart-canvas"></canvas>
+  </div>
+  <div class="chart-legend" *ngIf="legendItems.length > 0">
+    <div class="legend-item" *ngFor="let item of legendItems">
+      <span class="legend-dot" [style.background]="item.color"></span>
+      <span class="legend-label" [title]="item.label">{{ item.label }}</span>
+    </div>
+  </div>
+</div>

@@ -14,6 +14,7 @@ import { VariableSelectorComponent, SelectedVariablesByAspect } from '../compone
 import { TimeRangeComponent, TimeRangeSelection } from '../components/time-range/time-range.component';
 import { SendPanelComponent } from '../components/send-panel/send-panel.component';
 import { SelectionBasketComponent, BasketEntry } from '../components/selection-basket/selection-basket.component';
+import { TimeseriesChartComponent } from '../components/timeseries-chart/timeseries-chart.component';
 
 export interface Toast {
   id: number;
@@ -31,7 +32,8 @@ export interface Toast {
     VariableSelectorComponent,
     TimeRangeComponent,
     SendPanelComponent,
-    SelectionBasketComponent
+    SelectionBasketComponent,
+    TimeseriesChartComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -49,6 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
   selectedVariables: SelectedVariablesByAspect[] = [];
   basketEntries: BasketEntry[] = [];
   lastRange: TimeRangeSelection | null = null;
+  lastRangeLabel = '';
   toasts: Toast[] = [];
   isLive = false;
 
@@ -165,6 +168,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onRangeReady(range: TimeRangeSelection): void {
     this.lastRange = range;
+    this.lastRangeLabel = range.mode === 'live' ? 'Live' :
+      `${new Date(range.from).toLocaleString()} → ${new Date(range.to).toLocaleString()}`;
     if (this.basketEntries.length === 0) { this.showToast('warning', 'Please add variables to the basket before sending.'); return; }
     this.sendPanel?.executeSend(range).catch((err: unknown) => {
       this.handleDeliveryError(err instanceof Error ? err.message : 'Send failed.');

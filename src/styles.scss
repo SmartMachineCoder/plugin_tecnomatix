@@ -137,21 +137,23 @@ app-root {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--pt-bg-raised);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--pt-scrollbar);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 4px;
+  border: 1px solid var(--pt-bg-raised);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.45);
 }
 
 .live-dot {

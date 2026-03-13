@@ -56,15 +56,23 @@
       </button>
     </div>
 
-    <!-- Middle panel: Variable Selector + Bottom bar -->
+    <!-- Middle panel: Variable Selector + Chart + Bottom bar -->
     <div class="main-panel">
-      <!-- Variable Selector -->
+      <!-- Variable Selector (top half) -->
       <div class="variable-area">
         <app-variable-selector
           [assetId]="activeAssetId"
           [assetName]="selectedAsset?.name || ''"
           (selectionChanged)="onVariableSelectionChanged($event)"
         ></app-variable-selector>
+      </div>
+
+      <!-- Timeseries chart (bottom half of main panel) -->
+      <div class="chart-area">
+        <app-timeseries-chart
+          [entries]="basketEntries"
+          [lastRangeLabel]="lastRangeLabel"
+        ></app-timeseries-chart>
       </div>
 
       <!-- Bottom bar: Time Range + Send Controls -->

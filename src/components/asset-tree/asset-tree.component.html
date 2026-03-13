@@ -54,9 +54,6 @@
 
           <span class="asset-icon">&#128228;</span>
           <span class="asset-name">{{ node.asset.name }}</span>
-          <span class="asset-type-badge" *ngIf="node.asset.typeId">
-            {{ node.asset.typeId | slice:0:12 }}
-          </span>
         </div>
 
         <ng-container *ngIf="node.isExpanded && node.children.length > 0">

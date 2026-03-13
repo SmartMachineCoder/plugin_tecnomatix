@@ -125,6 +125,15 @@
   min-height: 0;
 }
 
+.chart-area {
+  height: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-top: 1px solid var(--pt-border);
+}
+
 /* ── Basket Panel (3rd column) ───────────────────────────────────── */
 .basket-panel {
   width: clamp(240px, 30%, 400px);
@@ -133,7 +142,8 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  background: var(--pt-bg-base);
+  background: var(--pt-bg-surface);
+  border-left: 1px solid var(--pt-border);
 }
 
 /* ── Bottom Bar ──────────────────────────────────────────────────── */
