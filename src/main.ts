@@ -5,17 +5,23 @@ import { oiPluginBootstrapper } from '@mindsphere/oi-plugin-sdk';
 
 (async () => {
   // Must await boot() so the SDK handshake with the IH Monitor host completes
-  // before Angular initializes — mirrors the reference demo pattern exactly
-  await oiPluginBootstrapper.boot({
-    enableDateTimeRangePicker: true,
-    appInfoI18n: {
-      en: {
-        displayName: 'Plugin_Tecnomatix',
-        appVersion: '1.0.0',
-        appCopyright: 'Siemens AG'
+  // before Angular initializes — mirrors the reference demo pattern exactly.
+  // The try/catch allows standalone mode (direct browser / local dev) when
+  // there is no IH Monitor host to complete the SWAC handshake.
+  try {
+    await oiPluginBootstrapper.boot({
+      enableDateTimeRangePicker: true,
+      appInfoI18n: {
+        en: {
+          displayName: 'Plugin_Tecnomatix',
+          appVersion: '1.0.0',
+          appCopyright: 'Siemens AG'
+        }
       }
-    }
-  });
+    });
+  } catch (err) {
+    console.warn('IH Monitor host not available (standalone mode):', err);
+  }
 
   // Session keep-alive: prevents IH session timeout by pinging the asset API every minute
   // Uses window.location.origin so the request goes to the IH proxy domain when inside Monitor
