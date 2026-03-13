@@ -9,7 +9,6 @@ import { ConfigService } from '../services/config.service';
 import { AssetService } from '../services/asset.service';
 
 import { SetupComponent } from '../components/setup/setup.component';
-import { AssetTreeComponent } from '../components/asset-tree/asset-tree.component';
 import { VariableSelectorComponent, SelectedVariablesByAspect } from '../components/variable-selector/variable-selector.component';
 import { TimeRangeComponent, TimeRangeSelection } from '../components/time-range/time-range.component';
 import { SendPanelComponent } from '../components/send-panel/send-panel.component';
@@ -28,7 +27,6 @@ export interface Toast {
   imports: [
     CommonModule,
     SetupComponent,
-    AssetTreeComponent,
     VariableSelectorComponent,
     TimeRangeComponent,
     SendPanelComponent,
@@ -45,7 +43,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isSetupDone = false;
   isSettingsOpen = false;
-  isSidebarCollapsed = false;
   activeAssetId: string | null = null;
   selectedAsset: Asset | null = null;
   selectedVariables: SelectedVariablesByAspect[] = [];
@@ -99,7 +96,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   openSettings(): void { this.isSettingsOpen = true; this.cdr.markForCheck(); }
   closeSettings(): void { this.isSettingsOpen = false; this.cdr.markForCheck(); }
-  toggleSidebar(): void { this.isSidebarCollapsed = !this.isSidebarCollapsed; this.cdr.markForCheck(); }
 
   onSettingsSaved(): void {
     this.closeSettings();
@@ -125,8 +121,6 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch { /* tree component shows errors */ }
     this.cdr.markForCheck();
   }
-
-  onAssetSelectedFromTree(assetId: string): void { this.onAssetChanged(assetId); }
 
   onVariableSelectionChanged(selection: SelectedVariablesByAspect[]): void {
     this.selectedVariables = selection;

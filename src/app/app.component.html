@@ -42,19 +42,8 @@
     </div>
   </div>
 
-  <!-- Main content area: sidebar + variable panel + basket panel -->
-  <div class="content-area" [class.sidebar-collapsed]="isSidebarCollapsed">
-    <!-- Left sidebar: Asset Tree -->
-    <div class="sidebar">
-      <app-asset-tree
-        *ngIf="!isSidebarCollapsed"
-        [activeAssetId]="activeAssetId"
-        (assetSelected)="onAssetSelectedFromTree($event)"
-      ></app-asset-tree>
-      <button class="sidebar-dock-btn" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand' : 'Collapse'">
-        {{ isSidebarCollapsed ? '▶' : '◀' }}
-      </button>
-    </div>
+  <!-- Main content area: variable panel + basket panel -->
+  <div class="content-area">
 
     <!-- Middle panel: Variable Selector + Chart + Bottom bar -->
     <div class="main-panel">
