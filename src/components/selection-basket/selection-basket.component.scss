@@ -323,3 +323,18 @@
   0%, 100% { border-color: rgba(192, 57, 43, 0.35); }
   50%       { border-color: rgba(192, 57, 43, 0.75); }
 }
+
+.export-buttons {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-export {
+  background: rgba(0, 120, 120, 0.08);
+  border: 1px solid rgba(0, 120, 120, 0.35);
+  color: #007878;
+  flex: 0 1 auto;
+
+  &:hover:not(:disabled) { background: rgba(0, 120, 120, 0.15); }
+}

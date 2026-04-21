@@ -77,5 +77,15 @@
         &#9632; Stop
       </button>
     </ng-container>
+
+    <!-- Export buttons -->
+    <div class="export-buttons">
+      <button class="btn btn-export" (click)="onExportClick('csv')" title="Export as CSV">
+        &#128195; CSV
+      </button>
+      <button class="btn btn-export" (click)="onExportClick('excel')" title="Export as Excel">
+        &#128195; Excel
+      </button>
+    </div>
   </div>
 </div>

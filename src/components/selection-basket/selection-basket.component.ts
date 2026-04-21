@@ -33,6 +33,7 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
   @Output() removeEntry = new EventEmitter<BasketEntry>();
   @Output() clearAll    = new EventEmitter<void>();
   @Output() sendAll     = new EventEmitter<void>();
+  @Output() exportData  = new EventEmitter<'csv' | 'xml' | 'excel'>();
   @Output() startLive   = new EventEmitter<void>();
   @Output() stopLive    = new EventEmitter<void>();
 
@@ -40,6 +41,7 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
 
   collapsedAssets = new Set<string>();
   private sparksPending = false;
+  groupedByAsset: { asset: Asset; entries: BasketEntry[] }[] = [];
 
   constructor(
     private timeseriesService: TimeseriesService,
@@ -47,11 +49,12 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['entries']) {
+      this.rebuildGroupedEntries();
+      this.sparksPending = true;
+    }
     if (changes['lastRange'] && this.lastRange && this.entries.length > 0) {
       this.fetchAllSparks();
-    }
-    if (changes['entries']) {
-      this.sparksPending = true;
     }
   }
 
@@ -93,11 +96,21 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
 
   private drawAllSparks(): void {
     const canvases = this.sparkCanvases.toArray();
-    this.entries.forEach((entry, i) => {
-      const canvas = canvases[i]?.nativeElement;
-      if (!canvas || !entry.sparkValues?.length) return;
-      this.drawSparkline(canvas, entry.sparkValues);
-    });
+    let canvasIndex = 0;
+
+    for (const group of this.groupedByAsset) {
+      if (this.isAssetCollapsed(group.asset.assetId)) continue;
+
+      for (const entry of group.entries) {
+        if (!entry.sparkLoading && entry.sparkValues && entry.sparkValues.length > 0) {
+          const canvas = canvases[canvasIndex]?.nativeElement;
+          if (canvas) {
+            this.drawSparkline(canvas, entry.sparkValues);
+          }
+          canvasIndex++;
+        }
+      }
+    }
   }
 
   private drawSparkline(canvas: HTMLCanvasElement, values: number[]): void {
@@ -139,8 +152,10 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
 
   onDragStart(event: DragEvent, entry: BasketEntry): void {
     const key = `${entry.asset.assetId}/${entry.aspectName}/${entry.variable.name}`;
-    event.dataTransfer?.setData('text/plain', key);
-    event.dataTransfer!.effectAllowed = 'copy';
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('text/plain', key);
+      event.dataTransfer.effectAllowed = 'copy';
+    }
   }
 
   toggleAssetCollapse(assetId: string): void {
@@ -149,6 +164,7 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
     } else {
       this.collapsedAssets.add(assetId);
     }
+    this.sparksPending = true; // Signals ngAfterViewChecked to redraw the newly created canvases
     this.cdr.markForCheck();
   }
 
@@ -160,7 +176,7 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
     return `${e.asset.assetId}/${e.aspectName}/${e.variable.name}`;
   }
 
-  get groupedByAsset(): { asset: Asset; entries: BasketEntry[] }[] {
+  private rebuildGroupedEntries(): void {
     const map = new Map<string, { asset: Asset; entries: BasketEntry[] }>();
     for (const e of this.entries) {
       if (!map.has(e.asset.assetId)) {
@@ -168,6 +184,10 @@ export class SelectionBasketComponent implements OnChanges, AfterViewChecked {
       }
       map.get(e.asset.assetId)!.entries.push(e);
     }
-    return Array.from(map.values());
+    this.groupedByAsset = Array.from(map.values());
+  }
+
+  onExportClick(format: 'csv' | 'xml' | 'excel'): void {
+    this.exportData.emit(format);
   }
 }
