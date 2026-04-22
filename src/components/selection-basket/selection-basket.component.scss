@@ -251,9 +251,8 @@
 /* ── Footer / actions ────────────────────────────────────────── */
 .basket-footer {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
-  align-items: center;
   padding: 8px 12px;
   border-top: 1px solid var(--pt-border);
   flex-shrink: 0;
@@ -291,8 +290,6 @@
   cursor: pointer;
   transition: all 0.12s;
   white-space: nowrap;
-  flex: 1 1 auto;
-  min-width: 80px;
 
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
@@ -300,8 +297,8 @@
 .btn-send {
   background: var(--pt-accent);
   color: #fff;
-  flex: 1 1 100%;
-  min-width: auto;
+  width: 100%;
+  box-sizing: border-box;
 
   &:hover:not(:disabled) { background: var(--pt-accent-hover); }
 }
@@ -310,8 +307,6 @@
   background: rgba(26, 128, 69, 0.1);
   border: 1px solid rgba(26, 128, 69, 0.35);
   color: var(--pt-success);
-  flex: 0 1 auto;
-  min-width: 60px;
 
   &:hover:not(:disabled) { background: rgba(26, 128, 69, 0.18); }
 }
@@ -335,7 +330,6 @@
 .export-buttons {
   display: flex;
   gap: 6px;
-  flex: 0 1 auto;
   flex-wrap: wrap;
 }
 
@@ -343,8 +337,7 @@
   background: rgba(0, 120, 120, 0.08);
   border: 1px solid rgba(0, 120, 120, 0.35);
   color: #007878;
-  flex: 0 1 auto;
-  min-width: 70px;
+  flex: 1;
 
   &:hover:not(:disabled) { background: rgba(0, 120, 120, 0.15); }
 }
