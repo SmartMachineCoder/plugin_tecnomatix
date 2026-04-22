@@ -251,6 +251,7 @@
 /* ── Footer / actions ────────────────────────────────────────── */
 .basket-footer {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
   padding: 8px 12px;
@@ -266,7 +267,6 @@
   font-size: 11px;
   font-weight: 700;
   color: var(--pt-success);
-  flex: 1;
 }
 
 .live-dot {
@@ -283,13 +283,16 @@
 }
 
 .btn {
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 4px;
   border: none;
   font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.12s;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 80px;
 
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
@@ -297,7 +300,8 @@
 .btn-send {
   background: var(--pt-accent);
   color: #fff;
-  flex: 1;
+  flex: 1 1 100%;
+  min-width: auto;
 
   &:hover:not(:disabled) { background: var(--pt-accent-hover); }
 }
@@ -306,6 +310,8 @@
   background: rgba(26, 128, 69, 0.1);
   border: 1px solid rgba(26, 128, 69, 0.35);
   color: var(--pt-success);
+  flex: 0 1 auto;
+  min-width: 60px;
 
   &:hover:not(:disabled) { background: rgba(26, 128, 69, 0.18); }
 }
@@ -315,6 +321,8 @@
   border: 1px solid rgba(192, 57, 43, 0.35);
   color: var(--pt-error);
   animation: pulse-border 1.5s ease-in-out infinite;
+  flex: 0 1 auto;
+  min-width: 60px;
 
   &:hover { background: rgba(192, 57, 43, 0.15); }
 }
@@ -327,7 +335,8 @@
 .export-buttons {
   display: flex;
   gap: 6px;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
 }
 
 .btn-export {
@@ -335,6 +344,7 @@
   border: 1px solid rgba(0, 120, 120, 0.35);
   color: #007878;
   flex: 0 1 auto;
+  min-width: 70px;
 
   &:hover:not(:disabled) { background: rgba(0, 120, 120, 0.15); }
 }

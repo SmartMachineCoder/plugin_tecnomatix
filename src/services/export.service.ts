@@ -5,6 +5,8 @@ import { PlantSimPayload } from '../models/timeseries.model';
 export class ExportService {
 
   async exportData(format: 'csv' | 'xml' | 'excel', payloads: PlantSimPayload[], rangeLabel: string): Promise<void> {
+    console.log(`[Export] Starting export, format=${format}, payloads=${payloads.length}, rangeLabel=${rangeLabel}`);
+
     let content = '';
     let mimeType = '';
     let extension = '';
@@ -26,6 +28,7 @@ export class ExportService {
     }
 
     const safeName = rangeLabel.replace(/[^a-zA-Z0-9_-]/g, '_') || 'data';
+    console.log(`[Export] Generated content, size=${content.length} bytes`);
     await this.downloadFile(content, mimeType, `Export_${safeName}.${extension}`);
   }
 
@@ -33,10 +36,21 @@ export class ExportService {
     const lines: string[] = [];
     lines.push('AssetId,AssetName,Aspect,VariableName,Unit,DataType,Timestamp,Value');
 
+    const escapeCsv = (val: any): string => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
     for (const p of payloads) {
       for (const v of p.variables) {
         for (const val of v.values) {
-          lines.push(`${p.assetId},"${p.assetName}",${v.aspect},${v.name},${v.unit || ''},${v.dataType},${val.time},${val.value}`);
+          lines.push(
+            `${escapeCsv(p.assetId)},${escapeCsv(p.assetName)},${escapeCsv(v.aspect)},${escapeCsv(v.name)},${escapeCsv(v.unit)},${escapeCsv(v.dataType)},${escapeCsv(val.time)},${escapeCsv(val.value)}`
+          );
         }
       }
     }
@@ -75,22 +89,33 @@ export class ExportService {
         const writable = await handle.createWritable();
         await writable.write(content);
         await writable.close();
+        console.log(`[Export] File saved successfully: ${filename}`);
         return;
       } catch (err) {
+        console.warn(`[Export] showSaveFilePicker failed, falling back to blob download:`, err);
         // AbortError means the user cancelled the dialog. Let it throw to cancel the success toast.
         if ((err as Error).name === 'AbortError') throw err;
       }
     }
 
     // Fallback for browsers that do not support showSaveFilePicker (e.g., Firefox, Safari)
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+
+      // Use setTimeout to ensure the element is in the DOM before clicking
+      await new Promise(resolve => setTimeout(() => { a.click(); resolve(null); }, 0));
+
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      console.log(`[Export] File downloaded successfully: ${filename}`);
+    } catch (err) {
+      console.error(`[Export] Download failed:`, err);
+      throw new Error(`Failed to download file: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
   }
 }
