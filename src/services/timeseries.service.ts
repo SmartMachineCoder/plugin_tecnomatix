@@ -32,11 +32,11 @@ export class TimeseriesService {
         `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&select=${varNames}&limit=2000`
       );
 
-      const rows = await this.fetchWithRetry<TimeSeriesDataPoint[]>(url);
+      const rows = await this.fetchWithRetry<Array<Record<string, unknown>>>(url);
 
       for (const variable of variables) {
         const values = rows.map((row) => ({
-          time: row['_time'] as string ?? row['time'] as string ?? '',
+          time: (row['_time'] as string) ?? (row['time'] as string) ?? '',
           value: row[variable.name] as number | string | boolean | null
         })).filter((v) => v.time !== '');
 
@@ -79,9 +79,9 @@ export class TimeseriesService {
       `?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&select=${variable.name}&limit=2000`
     );
 
-    let rows: TimeSeriesDataPoint[];
+    let rows: Array<Record<string, unknown>>;
     try {
-      rows = await this.fetchWithRetry<TimeSeriesDataPoint[]>(url);
+      rows = await this.fetchWithRetry<Array<Record<string, unknown>>>(url);
     } catch {
       return [];
     }
@@ -89,7 +89,7 @@ export class TimeseriesService {
     if (!Array.isArray(rows)) return [];
 
     return rows
-      .map(row => Number(row[variable.name]))
+      .map(row => Number(row[variable.name] as any))
       .filter(n => !isNaN(n));
   }
 

@@ -22,7 +22,7 @@
     "@siemens/ix": "^1.6.0",
     "@siemens/ix-angular": "^1.6.0",
     "mqtt": "^5.0.0",
-    "rxjs": "^7.5.0",
+    "rxjs": "^6.6.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.16.0"
   },

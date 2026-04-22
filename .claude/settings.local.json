@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/z0041xje/Desktop/Projects/Personal/plugin_tecnomatix -maxdepth 2 -type f \\\\\\(-name CLAUDE.md -o -name .cursorrules -o -name *.md -o -name .github \\\\\\))",
+      "Bash(ls -la /c/Users/z0041xje/Desktop/Projects/Personal/plugin_tecnomatix/src/components/*/)",
+      "Bash(npx tsc:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(ls node_modules/.bin/tsc*)",
+      "Bash(npm start *)",
+      "Bash(npm install *)",
+      "Bash(curl -s http://localhost:4200)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npm run *)"
+    ]
+  }
+}

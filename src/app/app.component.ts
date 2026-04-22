@@ -3,7 +3,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { oiProxy, DateRange } from '@mindsphere/oi-plugin-sdk';
-import { Subscription, interval } from 'rxjs';
+import { Subscription, interval, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { Asset } from '../models/asset.model';
 import { ConfigService } from '../services/config.service';
@@ -15,6 +16,8 @@ import { SendPanelComponent } from '../components/send-panel/send-panel.componen
 import { SelectionBasketComponent, BasketEntry } from '../components/selection-basket/selection-basket.component';
 import { TimeseriesChartComponent } from '../components/timeseries-chart/timeseries-chart.component';
 import { TimeRangeSelection } from '../components/time-range/time-range.component';
+import { TimeseriesService } from '../services/timeseries.service';
+import { ExportService } from '../services/export.service';
 
 export interface Toast {
   id: number;
@@ -55,13 +58,15 @@ export class AppComponent implements OnInit, OnDestroy {
   liveCountdown = 0; // seconds remaining
 
   private toastCounter = 0;
-  private sdkSubs: { unsubscribe(): void }[] = [];
   private liveTimerSub: Subscription | null = null;
   private countdownSub: Subscription | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private configService: ConfigService,
     private assetService: AssetService,
+    private timeseriesService: TimeseriesService,
+    private exportService: ExportService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -69,42 +74,34 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isSetupDone = this.configService.isConfigured();
 
     // Track the selected asset from IH Monitor
-    this.sdkSubs.push(
-      oiProxy.assetId.subscribe((assetId: string) => {
-        this.onAssetChanged(assetId);
-      })
-    );
+    oiProxy.assetId.pipe(takeUntil(this.destroy$)).subscribe((assetId: string) => {
+      this.onAssetChanged(assetId);
+    });
 
     // Use the Monitor's date range picker as the sole time range source
-    this.sdkSubs.push(
-      oiProxy.dateRange.subscribe((range: DateRange) => {
-        if (range) {
-          const from = range.start instanceof Date ? range.start.toISOString() : String(range.start);
-          const to = range.end instanceof Date ? range.end.toISOString() : String(range.end);
-          this.lastRange = { mode: 'historic', from, to };
-          this.lastRangeLabel = `${new Date(from).toLocaleString()} → ${new Date(to).toLocaleString()}`;
-          this.cdr.markForCheck();
-        }
-      })
-    );
+    oiProxy.dateRange.pipe(takeUntil(this.destroy$)).subscribe((range: DateRange) => {
+      if (range) {
+        const from = range.start instanceof Date ? range.start.toISOString() : String(range.start);
+        const to = range.end instanceof Date ? range.end.toISOString() : String(range.end);
+        this.lastRange = { mode: 'historic', from, to };
+        this.lastRangeLabel = `${new Date(from).toLocaleString()} → ${new Date(to).toLocaleString()}`;
+        this.cdr.markForCheck();
+      }
+    });
 
     // Stop live mode when plugin becomes inactive
-    this.sdkSubs.push(
-      oiProxy.active.subscribe((isActive: boolean) => {
-        if (!isActive && this.isLive) {
-          this.stopLive();
-          this.showToast('info', 'Live mode stopped — plugin tab became inactive.');
-        }
-      })
-    );
+    oiProxy.active.pipe(takeUntil(this.destroy$)).subscribe((isActive: boolean) => {
+      if (!isActive && this.isLive) {
+        this.stopLive();
+        this.showToast('info', 'Live mode stopped — plugin tab became inactive.');
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.stopLive();
-    for (const sub of this.sdkSubs) {
-      try { sub.unsubscribe(); } catch { /* ignore */ }
-    }
-    this.sdkSubs = [];
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSetupComplete(): void {
@@ -174,6 +171,48 @@ export class AppComponent implements OnInit, OnDestroy {
   onBasketClear(): void {
     this.basketEntries = [];
     this.cdr.markForCheck();
+  }
+
+  async onBasketExport(format: 'csv' | 'xml' | 'excel'): Promise<void> {
+    if (!this.lastRange) {
+      this.showToast('warning', 'Please select a time range in the Monitor date picker first.');
+      return;
+    }
+    if (this.basketEntries.length === 0) {
+      this.showToast('warning', 'Please add variables to the basket before exporting.');
+      return;
+    }
+
+    this.showToast('info', `Fetching data for ${format.toUpperCase()} export...`);
+    try {
+      const assetMap = new Map<string, { asset: Asset; byAspect: Map<string, SelectedVariablesByAspect> }>();
+      for (const entry of this.basketEntries) {
+        if (!assetMap.has(entry.asset.assetId)) {
+          assetMap.set(entry.asset.assetId, { asset: entry.asset, byAspect: new Map() });
+        }
+        const group = assetMap.get(entry.asset.assetId)!;
+        if (!group.byAspect.has(entry.aspectName)) {
+          group.byAspect.set(entry.aspectName, { aspectName: entry.aspectName, variables: [] });
+        }
+        group.byAspect.get(entry.aspectName)!.variables.push(entry.variable);
+      }
+
+      const payloads = [];
+      for (const { asset, byAspect } of assetMap.values()) {
+        const payload = await this.timeseriesService.fetchAndBuildPayload(
+          asset, Array.from(byAspect.values()), this.lastRange.from, this.lastRange.to, this.lastRange.mode
+        );
+        payloads.push(payload);
+      }
+
+      await this.exportService.exportData(format, payloads, this.lastRangeLabel || 'export');
+      this.showToast('success', `Exported to ${format.toUpperCase()} successfully.`);
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        return; // User cancelled the save dialog, ignore.
+      }
+      this.handleDeliveryError(err instanceof Error ? err.message : 'Export failed.');
+    }
   }
 
   /** Send to Plant Sim using the Monitor's current time range */
